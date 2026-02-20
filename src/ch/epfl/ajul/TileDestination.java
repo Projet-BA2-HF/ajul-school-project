@@ -3,7 +3,7 @@ package ch.epfl.ajul;
 import java.util.List;
 
 /// Identifies a tile destination, i.e. one of the five pattern lines
-/// or the floor line on a player's personal board.
+/// or the floor line on a player's personal board. HEDIII
 
 public sealed interface TileDestination {
 

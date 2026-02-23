@@ -18,7 +18,7 @@ public record Move(TileSource source, TileKind.Colored tileColor, TileDestinatio
         Objects.requireNonNull(destination);
     }
 
-    public Move ofPacked(short pkMove){
+    public static Move ofPacked(short pkMove){
         return new Move(PkMove.source(pkMove), PkMove.color(pkMove), PkMove.destination(pkMove));
     }
 

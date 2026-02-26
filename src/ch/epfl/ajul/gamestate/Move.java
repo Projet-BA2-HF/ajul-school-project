@@ -7,7 +7,6 @@ import ch.epfl.ajul.gamestate.packed.PkMove;
 
 import java.util.Objects;
 
-//Verif
 public record Move(TileSource source, TileKind.Colored tileColor, TileDestination destination) {
 
     public static final int MAX_MOVES = 9 * 4 * 6;

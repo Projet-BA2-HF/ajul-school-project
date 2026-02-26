@@ -2,6 +2,7 @@ package ch.epfl.ajul.gamestate.packed;
 
 import ch.epfl.ajul.TileKind;
 
+import java.util.List;
 import java.util.StringJoiner;
 import java.util.random.RandomGenerator;
 
@@ -10,11 +11,10 @@ public final class PkTileSet {
     public static final int EMPTY = 0;
     public static final int FULL = computeFull();
     public static final int FULL_COLORED = remove(FULL, TileKind.FIRST_PLAYER_MARKER);
-    public static final int SUM_SHIFT = 6;
-    public static final int MASK = (1 << SUM_SHIFT) -1;
+    public static final int COLOR_SHIFT = 6;
+    public static final int MASK = (1 << COLOR_SHIFT) -1;
     public static final int MAX_VALUE = 20;
 
-    // Verif
     private static int computeFull(){
         int fullValue = EMPTY;
         for (TileKind tk : TileKind.ALL){
@@ -28,45 +28,41 @@ public final class PkTileSet {
         return count << (tileKind.index() * 6);
     }
 
-    // Verif
     public static boolean isEmpty(int pkTileSet){
         assert isValid(pkTileSet);
         return pkTileSet == EMPTY;
     }
 
-    public static int size(int pkTileSet){
+    // Verif mais je pense que c'est good
+    public static int size(int pkTileSet) {
         assert isValid(pkTileSet);
-        int sum = 0;
-        for(int i = 0; i < 5; i++){
-           sum +=  (pkTileSet >> i*SUM_SHIFT) & MASK;
-        }
-        return sum + countOf(pkTileSet, TileKind.FIRST_PLAYER_MARKER);
+        int sum = pkTileSet + (pkTileSet >>> COLOR_SHIFT);
+        int AB = sum & MASK;
+        int CD = (sum >>> (2 *COLOR_SHIFT)) & MASK;
+        int EM = (sum >>> (4 *COLOR_SHIFT)) & MASK;
+        return AB + CD + EM;
     }
 
     public static int countOf(int pkTileSet, TileKind tileKind){
-        assert isValid(pkTileSet);
-        int tileKindIndex = tileKind.index() * SUM_SHIFT;
+        int tileKindIndex = tileKind.index() * COLOR_SHIFT;
         int tileKindShift = pkTileSet >> tileKindIndex;
         return tileKindShift & MASK;
     }
 
-    // Verif
     public static int subsetOf(int pkTileSet, TileKind tileKind){
         assert isValid(pkTileSet);
         return of(countOf(pkTileSet,tileKind), tileKind);
     }
 
-    // Verif
     public static int add(int pkTileSet, TileKind tileKind){
         assert isValid(pkTileSet);
-        int tileCounter = 1 << (tileKind.index() * SUM_SHIFT);
+        int tileCounter = 1 << (tileKind.index() * COLOR_SHIFT);
         return union(pkTileSet, tileCounter);
     }
 
-    // Verif
     public static int remove(int pkTileSet, TileKind tileKind){
         assert isValid(pkTileSet);
-        int tileCounter = 1 << (tileKind.index() * SUM_SHIFT);
+        int tileCounter = 1 << (tileKind.index() * COLOR_SHIFT);
         return difference(pkTileSet, tileCounter);
     }
 
@@ -80,7 +76,6 @@ public final class PkTileSet {
         return pkTileSet1 - pkTileSet2;
     }
 
-    // Verif
     public static int copyColoredInto(int pkTileSet, TileKind.Colored[] destination) {
         assert isValid(pkTileSet);
         int tileCount = 0;
@@ -94,25 +89,45 @@ public final class PkTileSet {
         return tileCount;
     }
 
-    public static int sampleColoredInto(int pkTileSet, TileKind.Colored[] destination, int offset, RandomGenerator randomGenerator){
+//    public static int sampleColoredInto(int pkTileSet, TileKind.Colored[] destination, int offset, RandomGenerator randomGenerator){
+//        int reservoirSize = destination.length - offset ;
+//        int i  = 0;
+//        for(TileKind.Colored coloredTile : TileKind.Colored.ALL) {
+//            for (int j = 0; j < PkTileSet.countOf(pkTileSet, coloredTile); j++) {
+//                if (i < reservoirSize) {
+//                    destination[offset + i] = coloredTile;
+//                } else {
+//                    int randomValue = randomGenerator.nextInt(0, i+1);
+//                    if (randomValue < reservoirSize) {
+//                        destination[offset + randomValue] = coloredTile;
+//                    }
+//                }
+//                i++;
+//            }
+//        }
+//       return offset + i;
+//    }
+
+    public static int sampleColoredInto(int pkTileSet, TileKind.Colored[] destination, int offset, RandomGenerator randomGenerator) {
         assert isValid(pkTileSet);
-        int availableSpace = destination.length - offset;
-        int drawnTiles = 0;
-        for (TileKind.Colored color : TileKind.Colored.ALL ){
+        int reservoirSize = destination.length - offset;
+        int reservoirEnd = offset + reservoirSize;
+        int currentIndex = offset;
+        for (TileKind.Colored color : TileKind.Colored.ALL) {
             int colorCount = countOf(pkTileSet, color);
-            for (int j=0; j<colorCount; j++){
-                if (drawnTiles <availableSpace){
-                    destination[offset + drawnTiles] = color;
+            for (int j = 0; j < colorCount; j++) {
+                if (currentIndex < reservoirEnd) {
+                    destination[currentIndex] = color;
                 } else {
-                    int random = randomGenerator.nextInt(drawnTiles + 1);
-                    if (random<availableSpace){
-                        destination[offset + random] = color;
+                    int randomIndex = randomGenerator.nextInt(offset, currentIndex + 1);
+                    if (randomIndex < reservoirEnd) {
+                        destination[randomIndex] = color;
                     }
                 }
-                drawnTiles++;
+                currentIndex++;
             }
         }
-        return offset + (Math.min(drawnTiles, availableSpace));
+        return currentIndex;
     }
 
     public static String toString(int pkTileSet){
@@ -132,8 +147,7 @@ public final class PkTileSet {
 
     private static boolean isValid(int pkTileSet) {
         for (TileKind tileKind : TileKind.ALL) {
-            int count = (pkTileSet >> (tileKind.index() * SUM_SHIFT)) & MASK;
-            if (count > tileKind.tilesCount())
+            if (countOf(pkTileSet, tileKind) > tileKind.tilesCount())
                 return false;
         }
         return true;

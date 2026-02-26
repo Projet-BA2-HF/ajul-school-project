@@ -4,10 +4,10 @@ import ch.epfl.ajul.TileKind;
 import org.junit.jupiter.api.Test;
 
 import java.util.random.RandomGenerator;
+import java.util.random.RandomGeneratorFactory;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class OurPkTileSetTest {
     // TileSet vide (0 tuile de chaque)
@@ -220,25 +220,68 @@ class OurPkTileSetTest {
         for (int i = 3; i < 23; i++) assertEquals(TileKind.Colored.B, destination[i]);
     }
 
+    private static RandomGenerator rngF(long seed) {
+        return RandomGeneratorFactory.getDefault().create(seed);
+    }
+
     @Test
     void sampleColoredInto() {
-        // On utilise une graine fixe pour que le test soit déterministe
-        RandomGenerator rng = RandomGenerator.of("Random");
+        var A = TileKind.Colored.A; var B = TileKind.Colored.B;
+        var C = TileKind.Colored.C; var D = TileKind.Colored.D;
+        var E = TileKind.Colored.E;
 
+        // --- CAS SIMPLES (pas de randomness) ---
+        RandomGenerator rng = RandomGenerator.of("Random");
         TileKind.Colored[] destination = new TileKind.Colored[5];
 
-        // THREE_A rentre entièrement dans le tableau (3 ≤ 5) : pas de reservoir sampling
-        // toutes les tuiles doivent être A, l'offset final est 0 + min(3, 5) = 3
         int end = PkTileSet.sampleColoredInto(THREE_A, destination, 0, rng);
         assertEquals(3, end);
         for (int i = 0; i < 3; i++)
             assertEquals(TileKind.Colored.A, destination[i]);
 
-        // Avec offset=2 et tableau de taille 5 : espace disponible = 3, THREE_A rentre encore
         int endWithOffset = PkTileSet.sampleColoredInto(THREE_A, destination, 2, rng);
-        assertEquals(5, endWithOffset); // 2 + min(3, 3) = 5
+        assertEquals(5, endWithOffset);
         for (int i = 2; i < 5; i++)
             assertEquals(TileKind.Colored.A, destination[i]);
+
+        // --- VALEUR DE RETOUR ---
+        assertEquals(100, PkTileSet.sampleColoredInto(PkTileSet.FULL_COLORED, new TileKind.Colored[90], 0, rngF(0)));
+        assertEquals(105, PkTileSet.sampleColoredInto(PkTileSet.FULL_COLORED, new TileKind.Colored[90], 5, rngF(0)));
+        assertEquals(0,   PkTileSet.sampleColoredInto(PkTileSet.EMPTY, new TileKind.Colored[10], 0, rngF(0)));
+        assertEquals(3,   PkTileSet.sampleColoredInto(PkTileSet.EMPTY, new TileKind.Colored[10], 3, rngF(0)));
+
+        // --- VALEURS DE RÉFÉRENCE (confirmées par plusieurs étudiants, seed=108, dest.length=10) ---
+        TileKind.Colored[][] expectedOffset = {
+                {A, B, C, C, B, B, C, E, B, C},                            // offset 0
+                {null, E, B, E, B, A, C, A, A, D},                         // offset 1
+                {null, null, D, E, B, B, D, A, C, D},                      // offset 2
+                {null, null, null, B, D, B, C, C, A, B},                   // offset 3
+                {null, null, null, null, B, E, A, C, B, D},                // offset 4
+                {null, null, null, null, null, C, E, B, D, C},             // offset 5
+                {null, null, null, null, null, null, B, C, C, A},          // offset 6
+                {null, null, null, null, null, null, null, B, A, A},       // offset 7
+                {null, null, null, null, null, null, null, null, B, D},    // offset 8
+                {null, null, null, null, null, null, null, null, null, D}, // offset 9
+        };
+        for (int offset = 0; offset < expectedOffset.length; offset++) {
+            var d = new TileKind.Colored[10];
+            PkTileSet.sampleColoredInto(PkTileSet.FULL_COLORED, d, offset, rngF(108));
+            assertArrayEquals(expectedOffset[offset], d, "offset=" + offset);
+        }
+
+        // --- OFFSET NE TOUCHE PAS LES CASES AVANT ---
+        var dOffset = new TileKind.Colored[10];
+        dOffset[0] = A; // sentinelle
+        PkTileSet.sampleColoredInto(PkTileSet.FULL_COLORED, dOffset, 3, rngF(42));
+        assertSame(A, dOffset[0]);
+        assertNull(dOffset[1]);
+        assertNull(dOffset[2]);
+
+        // --- DÉTERMINISME ---
+        var d1 = new TileKind.Colored[10]; var d2 = new TileKind.Colored[10];
+        PkTileSet.sampleColoredInto(PkTileSet.FULL_COLORED, d1, 0, rngF(42));
+        PkTileSet.sampleColoredInto(PkTileSet.FULL_COLORED, d2, 0, rngF(42));
+        assertArrayEquals(d1, d2);
     }
 
     @Test
@@ -260,4 +303,5 @@ class OurPkTileSetTest {
         // ALL_COLORED_TILES : toutes les couleurs à 20, pas de marqueur
         assertEquals("{20*A,20*B,20*C,20*D,20*E}", PkTileSet.toString(ALL_COLORED_TILES));
     }
+
 }

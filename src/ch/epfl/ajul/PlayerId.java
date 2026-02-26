@@ -2,8 +2,21 @@ package ch.epfl.ajul;
 
 import java.util.List;
 
+/// Identifies one of the players in a game of Ajul.
 public enum PlayerId {
-    P1,P2,P3,P4;
 
+    /// Player 1.
+    P1,
+
+    /// Player 2.
+    P2,
+
+    /// Player 3.
+    P3,
+
+    /// Player 4.
+    P4;
+
+    /// An immutable list of all player identifiers, in definition order.
     public static final List<PlayerId> ALL = List.of(values());
 }

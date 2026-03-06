@@ -27,7 +27,12 @@ public sealed interface TileKind {
     TileKind FIRST_PLAYER_MARKER = FirstPlayerMarker.FIRST_PLAYER_MARKER;
 
     /// An immutable list of all six tile kinds, in index order.
-    List<TileKind> ALL = List.of(Colored.A, Colored.B, Colored.C, Colored.D, Colored.E, FirstPlayerMarker.FIRST_PLAYER_MARKER);
+    List<TileKind> ALL = List.of(Colored.A,
+            Colored.B,
+            Colored.C,
+            Colored.D,
+            Colored.E,
+            FirstPlayerMarker.FIRST_PLAYER_MARKER);
 
     /// The total number of tile kinds (6).
     int COUNT = ALL.size();

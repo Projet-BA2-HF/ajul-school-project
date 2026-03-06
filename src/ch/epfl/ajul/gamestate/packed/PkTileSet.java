@@ -2,7 +2,7 @@ package ch.epfl.ajul.gamestate.packed;
 
 import ch.epfl.ajul.TileKind;
 
-import java.util.List;
+import java.util.Arrays;
 import java.util.StringJoiner;
 import java.util.random.RandomGenerator;
 
@@ -26,13 +26,10 @@ public final class PkTileSet {
     public static final int FULL_COLORED = remove(FULL, TileKind.FIRST_PLAYER_MARKER);
 
     /// The number of bits used per tile-kind counter (6).
-    public static final int COLOR_SHIFT = 6;
+    private static final int COLOR_SHIFT = 6;
 
     /// The bit mask for extracting a single tile-kind counter (63).
-    public static final int MASK = (1 << COLOR_SHIFT) - 1;
-
-    /// The maximum number of tiles of any colored kind in the game (20).
-    public static final int MAX_VALUE = 20;
+    private static final int MASK = (1 << COLOR_SHIFT) - 1;
 
     private static int computeFull(){
         int fullValue = EMPTY;
@@ -154,12 +151,10 @@ public final class PkTileSet {
     public static int copyColoredInto(int pkTileSet, TileKind.Colored[] destination) {
         assert isValid(pkTileSet);
         int tileCount = 0;
-        for(TileKind.Colored tileColor : TileKind.Colored.ALL){
+        for (TileKind.Colored tileColor : TileKind.Colored.ALL) {
             int colorCount = countOf(pkTileSet, tileColor);
-            for(int i = 0; i < colorCount; i++){
-                destination[tileCount] = tileColor;
-                tileCount++;
-            }
+            Arrays.fill(destination, tileCount, tileCount + colorCount, tileColor);
+            tileCount += colorCount;
         }
         return tileCount;
     }
@@ -174,19 +169,21 @@ public final class PkTileSet {
     /// @param offset          the index in {@code destination} at which writing starts
     /// @param randomGenerator the random generator used by the reservoir sampling algorithm
     /// @return the sum of {@code offset} and the size of the colored part of {@code pkTileSet}
-    public static int sampleColoredInto(int pkTileSet, TileKind.Colored[] destination, int offset, RandomGenerator randomGenerator) {
+    public static int sampleColoredInto(int pkTileSet,
+                                        TileKind.Colored[] destination,
+                                        int offset,
+                                        RandomGenerator randomGenerator) {
         assert isValid(pkTileSet);
-        int reservoirSize = destination.length - offset;
-        int reservoirEnd = offset + reservoirSize;
         int currentIndex = offset;
         for (TileKind.Colored color : TileKind.Colored.ALL) {
             int colorCount = countOf(pkTileSet, color);
             for (int j = 0; j < colorCount; j++) {
-                if (currentIndex < reservoirEnd) {
+                if (currentIndex < destination.length) {
                     destination [currentIndex] = color;
                 } else {
-                    int randomIndex = randomGenerator.nextInt(offset, currentIndex + 1);
-                    if (randomIndex < reservoirEnd) {
+                    int randomIndex = randomGenerator.nextInt(offset,
+                            currentIndex + 1);
+                    if (randomIndex < destination.length) {
                         destination[randomIndex] = color;
                     }
                 }
@@ -205,7 +202,7 @@ public final class PkTileSet {
     /// @return the string representation of {@code pkTileSet}
     public static String toString(int pkTileSet){
         assert isValid(pkTileSet);
-        StringJoiner outputString = new StringJoiner(",");
+        StringJoiner outputString = new StringJoiner(",", "{", "}");
         for(TileKind.Colored tileColor : TileKind.Colored.ALL){
             int colorCount = countOf(pkTileSet, tileColor);
             if (colorCount == 0) continue;
@@ -213,15 +210,15 @@ public final class PkTileSet {
         }
         int markerCount = countOf(pkTileSet, TileKind.FIRST_PLAYER_MARKER);
         if(markerCount > 0){
-            outputString.add(countOf(pkTileSet, TileKind.FIRST_PLAYER_MARKER) + "*" + TileKind.FIRST_PLAYER_MARKER);
+            outputString.add(countOf(pkTileSet,
+                    TileKind.FIRST_PLAYER_MARKER) + "*" + TileKind.FIRST_PLAYER_MARKER);
         }
-        return "{" + outputString + "}";
+        return outputString.toString();
     }
 
     private static boolean isValid(int pkTileSet) {
         for (TileKind tileKind : TileKind.ALL) {
-            if (countOf(pkTileSet, tileKind) > tileKind.tilesCount())
-                return false;
+            if (countOf(pkTileSet, tileKind) > tileKind.tilesCount()) return false;
         }
         return true;
     }

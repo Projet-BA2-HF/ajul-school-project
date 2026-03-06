@@ -27,7 +27,12 @@ public sealed interface TileDestination {
 
     /// An immutable list of all tile destinations, in index order
     /// (pattern lines 1–5, then the floor line).
-    List<TileDestination> ALL = List.of(PATTERN_1, PATTERN_2, PATTERN_3, PATTERN_4, PATTERN_5, FLOOR);
+    List<TileDestination> ALL = List.of(PATTERN_1,
+            PATTERN_2,
+            PATTERN_3,
+            PATTERN_4,
+            PATTERN_5,
+            FLOOR);
 
     /// The total number of tile destinations (6).
     int COUNT = ALL.size();

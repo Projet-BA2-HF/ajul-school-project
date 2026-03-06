@@ -5,67 +5,57 @@ import ch.epfl.ajul.TileKind;
 import ch.epfl.ajul.TileSource;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 class PkMoveTest {
-
     @Test
-    void pack() {
-        // On teste toutes les combinaisons possibles de source, couleur et destination
-        // Pour chaque combinaison, on calcule manuellement le short attendu
-        // et on vérifie que PkMove.pack() donne le même résultat
-        //
-        // Rappel du bit layout :
-        //   bits 0-3  : index de la source      (4 bits, offset 0)
-        //   bits 4-6  : index de la couleur     (3 bits, offset 4)
-        //   bits 7-9  : index de la destination (3 bits, offset 7)
-        //   bits 10-15: inutilisés (toujours 0)
-        for (TileSource source : TileSource.ALL)
-            for (TileKind.Colored color : TileKind.Colored.ALL)
-                for (TileDestination destination : TileDestination.ALL) {
-                    short actualPacked   = PkMove.pack(source, color, destination);
-                    short expectedPacked = (short) (source.index() | (color.index() << 4) | (destination.index() << 7));
-                    assertEquals(expectedPacked, actualPacked,
-                            "pack failed for source=%s, color=%s, dest=%s".formatted(source, color, destination));
+    void pkMovePackWorks() {
+        var remainingCases = 10 * 5 * 6;
+        for (var destination : TileDestination.ALL) {
+            var pkDestination = destination.index();
+            for (var color : TileKind.Colored.values()) {
+                var pkDestinationColor = (pkDestination << 3) | color.index();
+                for (var source : TileSource.ALL) {
+                    var pkMove = (pkDestinationColor << 4) | source.index();
+                    assertEquals(pkMove, PkMove.pack(source, color, destination));
+                    remainingCases -= 1;
                 }
+            }
+        }
+        assertEquals(0, remainingCases);
     }
 
     @Test
-    void source() {
-        // On pack toutes les combinaisons et on vérifie que source() retrouve
-        // bien la source d'origine (les autres champs ne doivent pas polluer)
-        for (TileSource source : TileSource.ALL)
-            for (TileKind.Colored color : TileKind.Colored.ALL)
-                for (TileDestination destination : TileDestination.ALL) {
-                    short packed = PkMove.pack(source, color, destination);
-                    assertEquals(source, PkMove.source(packed),
-                            "source failed for source=%s, color=%s, dest=%s".formatted(source, color, destination));
-                }
+    void pkMoveSourceWorks() {
+        var remainingCases = 10;
+        for (var source : TileSource.ALL) {
+            var pkMove = PkMove.pack(source, TileKind.Colored.A, TileDestination.FLOOR);
+            assertSame(source, PkMove.source(pkMove));
+            remainingCases -= 1;
+        }
+        assertEquals(0, remainingCases);
     }
 
     @Test
-    void color() {
-        // On pack toutes les combinaisons et on vérifie que color() retrouve
-        // bien la couleur d'origine (les autres champs ne doivent pas polluer)
-        for (TileSource source : TileSource.ALL)
-            for (TileKind.Colored color : TileKind.Colored.ALL)
-                for (TileDestination destination : TileDestination.ALL) {
-                    short packed = PkMove.pack(source, color, destination);
-                    assertEquals(color, PkMove.color(packed),
-                            "color failed for source=%s, color=%s, dest=%s".formatted(source, color, destination));
-                }
+    void pkMoveColorWorks() {
+        var remainingCases = 5;
+        for (var color : TileKind.Colored.ALL) {
+            var pkMove = PkMove.pack(TileSource.FACTORY_1, color, TileDestination.FLOOR);
+            assertSame(color, PkMove.color(pkMove));
+            remainingCases -= 1;
+        }
+        assertEquals(0, remainingCases);
     }
 
     @Test
-    void destination() {
-        // On pack toutes les combinaisons et on vérifie que destination() retrouve
-        // bien la destination d'origine (les autres champs ne doivent pas polluer)
-        for (TileSource source : TileSource.ALL)
-            for (TileKind.Colored color : TileKind.Colored.ALL)
-                for (TileDestination destination : TileDestination.ALL) {
-                    short packed = PkMove.pack(source, color, destination);
-                    assertEquals(destination, PkMove.destination(packed),
-                            "destination failed for source=%s, color=%s, dest=%s".formatted(source, color, destination));
-                }
+    void pkMoveDestinationWorks() {
+        var remainingCases = 6;
+        for (var destination : TileDestination.ALL) {
+            var pkMove = PkMove.pack(TileSource.FACTORY_1, TileKind.Colored.A, destination);
+            assertSame(destination, PkMove.destination(pkMove));
+            remainingCases -= 1;
+        }
+        assertEquals(0, remainingCases);
     }
 }

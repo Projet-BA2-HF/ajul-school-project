@@ -27,7 +27,9 @@ public final class PkMove {
     /// @param color       the color of the tiles taken
     /// @param destination the destination where the tiles are placed
     /// @return the packed {@code short} encoding of the move
-    public static short pack(TileSource source, TileKind.Colored color, TileDestination destination){
+    public static short pack(TileSource source, TileKind.Colored color,
+                             TileDestination destination){
+
         short packedMove = SOURCE_OFFSET;
         short sourceIndex = (short) source.index();
         short colorIndex = (short) (color.index() << COLOR_OFFSET);

@@ -14,7 +14,9 @@ import java.util.Objects;
 /// @param source      the tile source from which the tiles are taken
 /// @param tileColor   the color of the tiles taken
 /// @param destination the destination where the tiles are placed
-public record Move(TileSource source, TileKind.Colored tileColor, TileDestination destination) {
+public record Move(TileSource source,
+                   TileKind.Colored tileColor,
+                   TileDestination destination) {
 
     /// The maximum number of valid moves a player may choose from in any game state (216).
     /// Computed as 9 factories × 4 tiles per factory × 6 destinations.
@@ -35,7 +37,9 @@ public record Move(TileSource source, TileKind.Colored tileColor, TileDestinatio
     /// @param pkMove the packed move
     /// @return the {@code Move} decoded from {@code pkMove}
     public static Move ofPacked(short pkMove){
-        return new Move(PkMove.source(pkMove), PkMove.color(pkMove), PkMove.destination(pkMove));
+        return new Move(PkMove.source(pkMove),
+                PkMove.color(pkMove),
+                PkMove.destination(pkMove));
     }
 
     /// Returns the packed {@code short} representation of this move.

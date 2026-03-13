@@ -31,8 +31,7 @@ public sealed interface TileDestination {
             PATTERN_2,
             PATTERN_3,
             PATTERN_4,
-            PATTERN_5,
-            FLOOR);
+            PATTERN_5,FLOOR);
 
     /// The total number of tile destinations (6).
     int COUNT = ALL.size();

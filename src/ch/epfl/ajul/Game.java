@@ -33,7 +33,7 @@ public final class Game {
     /// @param kind the kind of the player (human or AI)
     public record PlayerDescription(PlayerId id, String name, PlayerKind kind) {
 
-        /// The kind of a player: either human-controlled or AI-controlled.
+        /// The kind of player: either human-controlled or AI-controlled.
         public enum PlayerKind {
             /// A human player.
             HUMAN,
@@ -65,7 +65,8 @@ public final class Game {
 
         int size = playerDescriptions.size();
         for (int i = 0; i < size; i++) {
-            Preconditions.checkArgument(playerDescriptions.get(i).id() == PlayerId.ALL.get(i));
+            Preconditions.checkArgument(
+                    playerDescriptions.get(i).id() == PlayerId.ALL.get(i));
         }
 
         this.playerDescriptions = List.copyOf(playerDescriptions);

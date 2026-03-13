@@ -94,10 +94,10 @@ public final class PkPatterns {
                                      TileDestination.Pattern line,
                                      int tileCount,
                                      TileKind.Colored color) {
-
         assert canContain(pkPatterns, line, color);
-        assert 0 < size(pkPatterns, line) + tileCount
+        assert 0 <= size(pkPatterns, line) + tileCount
                 && size(pkPatterns, line) + tileCount <= line.capacity();
+
         int offset = line.index() * BITS_PER_LINE;
         int newSize = ((pkPatterns >> offset) & SIZE_MASK) + tileCount;
         int newSpace = newSize | (color.index() << COLOR_SHIFT);

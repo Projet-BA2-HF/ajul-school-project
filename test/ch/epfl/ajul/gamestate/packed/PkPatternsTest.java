@@ -129,7 +129,7 @@ class PkPatternsTest {
             for (var line : TileDestination.Pattern.ALL) {
                 assertEquals(sizes[line.index()], PkPatterns.size(pkPatterns, line));
                 if (colors[line.index()] != null)
-                    assertEquals(colors[line.index()], PkPatterns.color(pkPatterns, line));
+                        assertEquals(colors[line.index()], PkPatterns.color(pkPatterns, line));
             }
         }
     }

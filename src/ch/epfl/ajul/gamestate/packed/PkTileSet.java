@@ -102,7 +102,7 @@ public final class PkTileSet {
     /// @return the packed tile set with one more {@code tileKind} tile
     public static int add(int pkTileSet, TileKind tileKind){
         assert isValid(pkTileSet);
-        int tileCounter = 1 << (tileKind.index() * COLOR_SHIFT  );
+        int tileCounter = 1 << (tileKind.index() * COLOR_SHIFT);
         return union(pkTileSet, tileCounter);
     }
 

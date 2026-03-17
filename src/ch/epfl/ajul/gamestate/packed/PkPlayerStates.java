@@ -7,58 +7,58 @@ import ch.epfl.ajul.intarray.ImmutableIntArray;
 import ch.epfl.ajul.intarray.ReadOnlyIntArray;
 
 public final class PkPlayerStates {
-    // Tableau de 4n entier avec n le nombre de joueurs.
-    // index 0 le cotenu des lignes de motif du premier joueur,
-    // L index 1, le contenu de la ligne plancher du premier joueur
-    // l index 2, le contenu du mur du premier joueur
-    // l index 3, le nombre de points du premier joueur
-
-    // Soit lecture seule, : un tableau sous la forme ReadOnlyIntArray
-    // soit modifiable : tableau prmitive int[]
+    private static final int INITIAL_POINTS = 0;
+    private static final int PLAYER_SIZE = 4;
+    private static final int PK_PATTERNS_OFFSET = 0;
+    private static final int PK_FLOOR_OFFSET = PK_PATTERNS_OFFSET + 1;
+    private static final int PK_WALL_OFFSET = PK_FLOOR_OFFSET + 1;
+    private static final int PK_POINTS_OFFSET = PK_WALL_OFFSET + 1;
 
     public static ImmutableIntArray initial(Game game){
-        // Retourne un tableau immuable contenant l'etat empaquete intital des joueurs dans la partie gagme, dans lequel toutes les lignes de motif, lignes de motif, lgines planher et murs sont vide et pt vaut 0
         int playerCount = game.playersCount();
-        int[] initialStates = new int[playerCount * 4];
+        int[] initialStates = new int[playerCount * PLAYER_SIZE];
         for(int i = 0; i < playerCount; i++){
-            initialStates[i * 4] = PkPatterns.EMPTY;
-            initialStates[i * 4 + 1] = PkFloor.EMPTY;
-            initialStates[i * 4 + 2] = PkWall.EMPTY;
-            initialStates[i * 4 + 3] = 0;
+            initialStates[i * PLAYER_SIZE + PK_PATTERNS_OFFSET] = PkPatterns.EMPTY;
+            initialStates[i * PLAYER_SIZE + PK_FLOOR_OFFSET] = PkFloor.EMPTY;
+            initialStates[i * PLAYER_SIZE + PK_WALL_OFFSET] = PkWall.EMPTY;
+            initialStates[i * PLAYER_SIZE + PK_POINTS_OFFSET] = INITIAL_POINTS;
         }
         return ImmutableIntArray.copyOf(initialStates);
     }
 
+    private static int computePkPlayerStatesIndex(PlayerId playerId, int offset) {
+        return playerId.ordinal() * PLAYER_SIZE + offset;
+    }
+
     public static int pkPatterns(ReadOnlyIntArray pkPlayerStates, PlayerId playerId){
-        return pkPlayerStates.get(playerId.ordinal() * 4);
+        return pkPlayerStates.get(computePkPlayerStatesIndex(playerId, PK_PATTERNS_OFFSET));
     }
 
     public static int pkFloor(ReadOnlyIntArray pkPlayerStates, PlayerId playerId){
-        return pkPlayerStates.get(playerId.ordinal() * 4 + 1);
+        return pkPlayerStates.get(computePkPlayerStatesIndex(playerId, PK_PATTERNS_OFFSET));
     }
 
     public static int pkWall(ReadOnlyIntArray pkPlayerStates, PlayerId playerId) {
-        return pkPlayerStates.get(playerId.ordinal() * 4 + 2);
+        return pkPlayerStates.get(computePkPlayerStatesIndex(playerId, PK_WALL_OFFSET));
     }
 
     public static int points(ReadOnlyIntArray pkPlayerStates, PlayerId playerId) {
-        return pkPlayerStates.get(playerId.ordinal() * 4 + 3);
+        return pkPlayerStates.get(computePkPlayerStatesIndex(playerId, PK_POINTS_OFFSET));
     }
 
     public static void setPkPatterns(int[] pkPlayerStates, PlayerId playerId, int pkPatterns) {
-        pkPlayerStates[playerId.ordinal() * 4] = pkPatterns;
+        pkPlayerStates[computePkPlayerStatesIndex(playerId, PK_PATTERNS_OFFSET)] = pkPatterns;
     }
 
     public static void setPkFloor(int[] pkPlayerStates, PlayerId playerId, int pkFloor) {
-        pkPlayerStates[playerId.ordinal() * 4 + 1] = pkFloor;
+        pkPlayerStates[computePkPlayerStatesIndex(playerId, PK_FLOOR_OFFSET)] = pkFloor;
     }
 
     public static void setPkWall(int[] pkPlayerStates, PlayerId playerId, int pkWall) {
-        pkPlayerStates[playerId.ordinal() * 4 + 2] = pkWall;
+        pkPlayerStates[computePkPlayerStatesIndex(playerId, PK_WALL_OFFSET)] = pkWall;
     }
 
-    public static void setPoints(int[] pkPlayerStates, PlayerId playerId, int pointsToAdd) {
-        pkPlayerStates[playerId.ordinal() * 4 + 3] += pointsToAdd; // ?
+    public static void addPoints(int[] pkPlayerStates, PlayerId playerId, int pointsToAdd) {
+        pkPlayerStates[computePkPlayerStatesIndex(playerId, PK_POINTS_OFFSET)] += pointsToAdd;
     }
-
 }

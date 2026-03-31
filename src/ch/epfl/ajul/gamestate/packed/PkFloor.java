@@ -44,7 +44,7 @@ public final class PkFloor {
     /// @param i       the 0-based index of the tile to retrieve
     /// @return the tile kind at index {@code i}
     public static TileKind tileAt(int pkFloor, int i) {
-        assert i >= 0 && size(pkFloor) > i;
+        assert i >= 0 && i < size(pkFloor);
         return TileKind.ALL.get(pkFloor >> (TILE_SHIFT + i * TILE_SHIFT)
                 & TILE_MASK);
     }

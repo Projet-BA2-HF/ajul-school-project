@@ -16,8 +16,8 @@ public final class Points {
 
     private static final int BITS_PER_PENALTY = 4;
     private static final int PENALTY_MASK = (1 << BITS_PER_PENALTY) - 1;
-    //private static final int MAX_WIDTH = 5;
-    //private static final int MAX_HEIGHT = 5;
+    private static final int MAX_WIDTH = 5;
+    private static final int MAX_HEIGHT = 5;
 
     // Packed floor penalties: each 4-bit nibble encodes the penalty for the
     // corresponding tile position (nibble 0 = position 0, etc.).
@@ -36,9 +36,9 @@ public final class Points {
     /// @param hGroupSize the size of the horizontal group, between 1 and 5 (inclusive)
     /// @param vGroupSize the size of the vertical group, between 1 and 5 (inclusive)
     /// @return the number of points earned for the newly placed tile
-    public static int newWallTilePoints(int hGroupSize, int vGroupSize){
-        //assert hGroupSize > 0 && hGroupSize <= MAX_WIDTH
-        //&& vGroupSize > 0 && vGroupSize <= MAX_HEIGHT;
+    public static int newWallTilePoints(int hGroupSize, int vGroupSize) {
+        assert hGroupSize > 0 && hGroupSize <= MAX_WIDTH
+        && vGroupSize > 0 && vGroupSize <= MAX_HEIGHT;
         if (vGroupSize == 1) return hGroupSize;
         else if (hGroupSize == 1) return vGroupSize;
         else return hGroupSize + vGroupSize;
@@ -49,8 +49,8 @@ public final class Points {
     ///
     /// @param tileIndex the position of the tile in the floor line, between 0 and 6 (inclusive)
     /// @return the penalty for that tile (1, 2, or 3)
-    public static int floorPenalty(int tileIndex){
-        //assert 0 <= tileIndex && tileIndex <= TileDestination.FLOOR.capacity() - 1;
+    public static int floorPenalty(int tileIndex) {
+        assert 0 <= tileIndex && tileIndex <= TileDestination.FLOOR.capacity() - 1;
         return (FLOOR_PENALTY >>> (tileIndex * BITS_PER_PENALTY)) & PENALTY_MASK;
     }
 
@@ -60,8 +60,8 @@ public final class Points {
     ///
     /// @param tilesCount the number of tiles in the floor line, between 0 and 7 (inclusive)
     /// @return the total penalty for that floor line
-    public static int totalFloorPenalty(int tilesCount){
-        //assert 0 <= tilesCount && tilesCount <= TileDestination.FLOOR.capacity();
+    public static int totalFloorPenalty(int tilesCount) {
+        assert 0 <= tilesCount && tilesCount <= TileDestination.FLOOR.capacity();
         return (TOTAL_FLOOR_PENALTY >>> (tilesCount * BITS_PER_PENALTY)) & PENALTY_MASK;
     }
 

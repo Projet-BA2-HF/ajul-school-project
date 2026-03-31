@@ -45,8 +45,8 @@ public final class PkWall {
     /// @param line  the pattern line
     /// @param color the color of the tile accepted by the cell
     /// @return the cell index between 0 and 24
-    public static int indexOf(TileDestination.Pattern line, TileKind.Colored colored){
-        return (line.index() * WALL_WIDTH + column(line, colored));
+    public static int indexOf(TileDestination.Pattern line, TileKind.Colored color) {
+        return (line.index() * WALL_WIDTH + column(line, color));
     }
 
     /// Returns the column number, between 0 and 4 (inclusive), of the wall cell corresponding to
@@ -55,7 +55,7 @@ public final class PkWall {
     /// @param line  the pattern line
     /// @param color the color of the tile accepted by the cell
     /// @return the column number between 0 and 4
-    public static int column(TileDestination.Pattern line, TileKind.Colored color){
+    public static int column(TileDestination.Pattern line, TileKind.Colored color) {
         return (line.index() + color.index()) % WALL_WIDTH;
     }
 
@@ -64,7 +64,7 @@ public final class PkWall {
     /// @param line   the pattern line
     /// @param column the column number, between 0 and 4 (inclusive)
     /// @return the color accepted by that cell
-    public static TileKind.Colored colorAt(TileDestination.Pattern line, int column){
+    public static TileKind.Colored colorAt(TileDestination.Pattern line, int column) {
         return TileKind.Colored.ALL.get((column - line.index() + WALL_WIDTH)%WALL_WIDTH);
     }
 
@@ -77,7 +77,7 @@ public final class PkWall {
     /// @return {@code pkWall} with the tile added at the corresponding cell
     public static int withTileAt(int pkWall,
                                  TileDestination.Pattern line,
-                                 TileKind.Colored color){
+                                 TileKind.Colored color) {
         return PkIntSet32.add(pkWall, indexOf(line, color));
     }
 
@@ -90,7 +90,7 @@ public final class PkWall {
     /// @return {@code true} iff that cell contains a tile
     public static boolean hasTileAt(int pkWall,
                                     TileDestination.Pattern line,
-                                    TileKind.Colored color){
+                                    TileKind.Colored color) {
         return PkIntSet32.contains(pkWall, indexOf(line, color));
     }
 
@@ -187,7 +187,7 @@ public final class PkWall {
     /// @param column the column number, between 0 and 4 (inclusive)
     /// @return {@code true} iff that column is full
     public static boolean isColumnFull(int pkWall, int column) {
-        //assert 0 <= column && column < WALL_WIDTH;
+        assert 0 <= column && column < WALL_WIDTH;
         int columnMask = COLUMN0_MASK << column;
         return (pkWall & columnMask) == columnMask;
     }
@@ -238,16 +238,16 @@ public final class PkWall {
     ///
     /// @param pkWall the packed wall
     /// @return the textual representation of the wall
-    public static String toString(int pkWall){
+    public static String toString(int pkWall) {
         StringJoiner outputString = new StringJoiner(", ", "[", "]");
 
         for (TileDestination.Pattern line : TileDestination.Pattern.ALL) {
             StringBuilder row = new StringBuilder();
 
-            for(int i = 0; i < WALL_WIDTH; i++){
+            for (int i = 0; i < WALL_WIDTH; i++) {
                 TileKind.Colored color = colorAt(line, i);
                 String letter = color.name();
-                if(!hasTileAt(pkWall, line, color)){
+                if (!hasTileAt(pkWall, line, color)) {
                     letter = letter.toLowerCase();
                 }
                 row.append(letter);

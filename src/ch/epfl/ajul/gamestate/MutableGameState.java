@@ -225,7 +225,9 @@ public final class MutableGameState implements ReadOnlyGameState {
                         Points.totalFloorPenalty(PkFloor.size(playerFloor)));
 
                 PkPlayerStates.addPoints(pkPlayerStatesList, playerId, -penalty);
-                pointsObserver.floor(playerId, penalty);
+                if (penalty > 0) {
+                    pointsObserver.floor(playerId, penalty);
+                }
 
                 if (PkFloor.containsFirstPlayerMarker(playerFloor)) {
                     currentPlayerId = playerId;

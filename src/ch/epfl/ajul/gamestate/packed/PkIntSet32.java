@@ -17,7 +17,7 @@ public final class PkIntSet32 {
     /// @param i          the integer to test for membership, between 0 and 31 (inclusive)
     /// @return {@code true} iff {@code i} belongs to {@code pkIntSet32}
     public static boolean contains(int pkIntSet32, int i) {
-        //assert 0 <= i && i < Integer.SIZE;
+        assert 0 <= i && i < Integer.SIZE;
         return (pkIntSet32 & (1 << i)) != 0;
     }
 
@@ -37,7 +37,7 @@ public final class PkIntSet32 {
     /// @param i          the integer to add, between 0 and 31 (inclusive)
     /// @return {@code pkIntSet32} with {@code i} added
     public static int add(int pkIntSet32, int i) {
-        //assert 0 <= i && i < Integer.SIZE;
+        assert 0 <= i && i < Integer.SIZE;
         return pkIntSet32 | (1 << i);
     }
 
@@ -47,7 +47,7 @@ public final class PkIntSet32 {
     /// @param i          the integer to remove, between 0 and 31 (inclusive)
     /// @return {@code pkIntSet32} with {@code i} removed
     public static int remove(int pkIntSet32, int i) {
-        //assert 0 <= i && i < Integer.SIZE;
+        assert 0 <= i && i < Integer.SIZE;
         return pkIntSet32 & ~(1 << i);
     }
 }

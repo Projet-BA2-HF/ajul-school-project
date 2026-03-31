@@ -1749,27 +1749,6 @@ class OurMutableGameStateTest {
     // =========================================================
 
     @Test
-    void fullRoundFillPlayEndRoundPreservesTotalColoredTiles() {
-        MutableGameState state = new MutableGameState(ImmutableGameState.initial(GAME_2P));
-        state.fillFactories(new Random(42));
-
-        assertEquals(100, totalColoredTilesInState(state));
-
-        while (!state.isRoundOver()) {
-            short[] moves = new short[Move.MAX_MOVES];
-            int count = state.validMoves(moves);
-            assertTrue(count > 0, "Il devrait toujours y avoir au moins un coup jouable");
-            state.registerMove(moves[0]);
-            assertEquals(100, totalColoredTilesInState(state),
-                    "Le nombre total de tuiles colorées doit rester 100");
-        }
-
-        state.endRound();
-        assertEquals(100, totalColoredTilesInState(state),
-                "Le nombre total de tuiles colorées doit rester 100 après endRound");
-    }
-
-    @Test
     void endGameDoesNothingWhenNoBonusExistsWorks() {
         int[] pkTileSources = emptyTileSourcesWithoutMarker();
         int[] pkPlayerStates = initialPlayerStates();

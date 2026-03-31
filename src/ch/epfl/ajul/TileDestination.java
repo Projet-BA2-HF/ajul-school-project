@@ -1,9 +1,14 @@
 package ch.epfl.ajul;
 
+import ch.epfl.ajul.gamestate.packed.PkFloor;
+
 import java.util.List;
 
 /// Identifies a tile destination, i.e. one of the five pattern lines
 /// or the floor line on a player's personal board.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 
 public sealed interface TileDestination {
 
@@ -31,7 +36,7 @@ public sealed interface TileDestination {
             PATTERN_2,
             PATTERN_3,
             PATTERN_4,
-            PATTERN_5,FLOOR);
+            PATTERN_5, FLOOR);
 
     /// The total number of tile destinations (6).
     int COUNT = ALL.size();

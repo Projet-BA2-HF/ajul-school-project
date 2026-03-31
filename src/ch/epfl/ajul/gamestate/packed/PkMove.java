@@ -9,6 +9,9 @@ import ch.epfl.ajul.TileSource;
 /// the source index in bits 0–3, the tile color index in bits 4–6,
 /// and the destination index in bits 7–9.
 /// The six most-significant bits are always 0.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public final class PkMove {
     private static final int SOURCE_OFFSET = 0;
     private static final int SOURCE_BITS = 4;
@@ -28,7 +31,7 @@ public final class PkMove {
     /// @param destination the destination where the tiles are placed
     /// @return the packed {@code short} encoding of the move
     public static short pack(TileSource source, TileKind.Colored color,
-                             TileDestination destination){
+                             TileDestination destination) {
 
         short packedMove = SOURCE_OFFSET;
         short sourceIndex = (short) source.index();
@@ -43,7 +46,7 @@ public final class PkMove {
     ///
     /// @param pkMove the packed move
     /// @return the tile source of {@code pkMove}
-    public static TileSource source(short pkMove){
+    public static TileSource source(short pkMove) {
         int sourceIndex = (pkMove >> SOURCE_OFFSET) & SOURCE_MASK;
         return TileSource.ALL.get(sourceIndex);
     }
@@ -52,7 +55,7 @@ public final class PkMove {
     ///
     /// @param pkMove the packed move
     /// @return the tile color of {@code pkMove}
-    public static TileKind.Colored color(short pkMove){
+    public static TileKind.Colored color(short pkMove) {
         int coloredIndex = (pkMove >> COLOR_OFFSET) & COLOR_MASK;
         return TileKind.Colored.ALL.get(coloredIndex);
     }
@@ -61,7 +64,7 @@ public final class PkMove {
     ///
     /// @param pkMove the packed move
     /// @return the tile destination of {@code pkMove}
-    public static TileDestination destination(short pkMove){
+    public static TileDestination destination(short pkMove) {
         int destinationIndex = (pkMove >> DESTINATION_OFFSET) & DESTINATION_MASK;
         return TileDestination.ALL.get(destinationIndex);
     }

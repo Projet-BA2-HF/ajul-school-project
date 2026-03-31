@@ -14,6 +14,9 @@ import java.util.Objects;
 /// @param source      the tile source from which the tiles are taken
 /// @param tileColor   the color of the tiles taken
 /// @param destination the destination where the tiles are placed
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public record Move(TileSource source,
                    TileKind.Colored tileColor,
                    TileDestination destination) {

@@ -7,6 +7,9 @@ import static ch.epfl.ajul.intarray.ImmutableIntArray.copyOf;
 /// Abstract base class for integer array implementations.
 /// Provides concrete implementations of all methods declared in ReadOnlyIntArray,
 /// as well as an override of toString.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 
 public abstract class AbstractIntArray implements ReadOnlyIntArray {
 

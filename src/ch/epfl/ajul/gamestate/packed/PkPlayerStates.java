@@ -17,18 +17,21 @@ import ch.epfl.ajul.intarray.ReadOnlyIntArray;
 /// </ul>
 /// Methods that only read from the array accept a {@link ReadOnlyIntArray}, while methods that
 /// modify the array accept a primitive {@code int[]}.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public final class PkPlayerStates {
-    /// The initial number of points for each player.
+    // The initial number of points for each player.
     private static final int INITIAL_POINTS = 0;
-    /// The number of {@code int} elements used per player.
+    // The number of int elements used per player.
     private static final int PLAYER_SIZE = 4;
-    /// The offset of the packed pattern lines within a player's block.
+    // The offset of the packed pattern lines within a player's block.
     private static final int PK_PATTERNS_OFFSET = 0;
-    /// The offset of the packed floor line within a player's block.
+    // The offset of the packed floor line within a player's block.
     private static final int PK_FLOOR_OFFSET = PK_PATTERNS_OFFSET + 1;
-    /// The offset of the packed wall within a player's block.
+    // The offset of the packed wall within a player's block.
     private static final int PK_WALL_OFFSET = PK_FLOOR_OFFSET + 1;
-    /// The offset of the points within a player's block.
+    // The offset of the points within a player's block.
     private static final int PK_POINTS_OFFSET = PK_WALL_OFFSET + 1;
 
     /// Returns an immutable array containing the initial packed state of all players in the given
@@ -36,7 +39,7 @@ public final class PkPlayerStates {
     ///
     /// @param game the game whose players are initialized
     /// @return the initial packed player states
-    public static ImmutableIntArray initial(Game game){
+    public static ImmutableIntArray initial(Game game) {
         int playerCount = game.playersCount();
         int[] initialStates = new int[playerCount * PLAYER_SIZE];
         for(int i = 0; i < playerCount; i++){
@@ -48,11 +51,7 @@ public final class PkPlayerStates {
         return ImmutableIntArray.copyOf(initialStates);
     }
 
-    /// Computes the index in the flat array for the given player and component offset.
-    ///
-    /// @param playerId the identity of the player
-    /// @param offset   the component offset within the player's block
-    /// @return the array index
+    // Computes the index in the flat array for the given player and component offset.
     private static int computeIndex(PlayerId playerId, int offset) {
         return playerId.ordinal() * PLAYER_SIZE + offset;
     }
@@ -62,7 +61,7 @@ public final class PkPlayerStates {
     /// @param pkPlayerStates the packed player states array
     /// @param playerId       the identity of the player
     /// @return the packed pattern lines (see {@link PkPatterns})
-    public static int pkPatterns(ReadOnlyIntArray pkPlayerStates, PlayerId playerId){
+    public static int pkPatterns(ReadOnlyIntArray pkPlayerStates, PlayerId playerId) {
         return pkPlayerStates.get(computeIndex(playerId, PK_PATTERNS_OFFSET));
     }
 
@@ -71,7 +70,7 @@ public final class PkPlayerStates {
     /// @param pkPlayerStates the packed player states array
     /// @param playerId       the identity of the player
     /// @return the packed floor line (see {@link PkFloor})
-    public static int pkFloor(ReadOnlyIntArray pkPlayerStates, PlayerId playerId){
+    public static int pkFloor(ReadOnlyIntArray pkPlayerStates, PlayerId playerId) {
         return pkPlayerStates.get(computeIndex(playerId, PK_FLOOR_OFFSET));
     }
 

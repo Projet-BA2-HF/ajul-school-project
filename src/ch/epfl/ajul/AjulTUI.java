@@ -15,14 +15,28 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.random.RandomGenerator;
 
+/// Provides a textual user interface (TUI) for playing a game of Ajul
+/// between human players in the terminal. The game state is printed to
+/// the console and players are prompted to enter their moves using a
+/// compact 3-character format: source index, color letter, destination index.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public final class AjulTUI {
 
     private static final Scanner SCANNER = new Scanner(System.in);
 
+    /// Entry point for the Ajul TUI application.
+    ///
+    /// @param args command-line arguments (unused)
     public static void main(String[] args) {
         main();
     }
 
+    /// Prints the current game state to the console, including factory contents,
+    /// center area, and all player boards with patterns, walls, and floor lines.
+    ///
+    /// @param gameState the current game state to display
     static void printState(ReadOnlyGameState gameState) {
         printFactoriesCompact(gameState);
         System.out.println();
@@ -43,6 +57,13 @@ public final class AjulTUI {
         System.out.println();
     }
 
+    /// Prompts the given player to enter a valid move and returns it.
+    /// The method displays all valid moves and repeatedly asks for input
+    /// until a legal move is entered.
+    ///
+    /// @param playerName the name of the player to prompt
+    /// @param gameState  the current game state used to determine valid moves
+    /// @return the move chosen by the player
     static Move queryNextMove(String playerName,
                               ReadOnlyGameState gameState) {
         short[] validMoves = new short[Move.MAX_MOVES];
@@ -71,6 +92,8 @@ public final class AjulTUI {
         }
     }
 
+    /// Runs a complete game of Ajul with two human players using the
+    /// textual user interface.
     static void main() {
         RandomGenerator randomGenerator = RandomGenerator.getDefault();
 

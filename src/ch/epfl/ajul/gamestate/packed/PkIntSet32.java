@@ -3,6 +3,9 @@ package ch.epfl.ajul.gamestate.packed;
 /// Contains static methods for manipulating sets of integers packed into {@code int} values.
 /// A packed integer set represents a subset of {0, …, 31}, where bit {@code i} is 1
 /// if and only if integer {@code i} belongs to the set.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public final class PkIntSet32 {
 
     /// The packed representation of the empty set.
@@ -24,7 +27,7 @@ public final class PkIntSet32 {
     /// @param pkIntSet32a the packed integer set to test as the superset
     /// @param pkIntSet32b the packed integer set whose elements must all be present
     /// @return {@code true} iff {@code pkIntSet32a} is a superset of {@code pkIntSet32b}
-    public static boolean containsAll(int pkIntSet32a, int pkIntSet32b){
+    public static boolean containsAll(int pkIntSet32a, int pkIntSet32b) {
         return (pkIntSet32a & pkIntSet32b) == pkIntSet32b;
     }
 

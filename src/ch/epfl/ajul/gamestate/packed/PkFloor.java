@@ -16,6 +16,9 @@ import java.util.StringJoiner;
 ///   <li>… and so on for up to 7 tile positions</li>
 ///   <li>bits 24–31: always 0</li>
 /// </ul>
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public final class PkFloor {
 
     /// The packed representation of an empty floor line (no tiles).
@@ -103,7 +106,8 @@ public final class PkFloor {
         int size = size(pkFloor);
 
         for (int i = 0; i < size; i++) {
-            pkTileSet += PkTileSet.of(1, tileAt(pkFloor, i));
+            pkTileSet = PkTileSet.union(pkTileSet,
+                    PkTileSet.of(1, tileAt(pkFloor, i)));
         }
 
         return pkTileSet;
@@ -120,7 +124,7 @@ public final class PkFloor {
         StringJoiner outputString = new StringJoiner(", ", "[", "]");
         int size = size(pkFloor);
         for (int i = 0; i < size; i++) {
-            outputString.add("" + TileKind.ALL.get(tileAt(pkFloor, i).index()));
+            outputString.add(tileAt(pkFloor, i).toString());
         }
         return outputString.toString();
     }

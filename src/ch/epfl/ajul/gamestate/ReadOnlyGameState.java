@@ -17,6 +17,9 @@ import static ch.epfl.ajul.gamestate.packed.PkIntSet32.EMPTY;
 /// <p>
 /// Implementations must provide the six abstract accessor methods; all other methods are
 /// provided as default methods computed from those accessors.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public interface ReadOnlyGameState {
 
     /// Returns the configuration of the game (players, names, types).

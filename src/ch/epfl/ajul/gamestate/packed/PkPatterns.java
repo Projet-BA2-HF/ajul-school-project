@@ -17,6 +17,9 @@ import java.util.StringJoiner;
 ///   <li>… and so on for lines 3–5</li>
 ///   <li>bits 30–31: always 0</li>
 /// </ul>
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public final class PkPatterns {
 
     /// The packed representation of empty pattern lines (no tiles on any line).

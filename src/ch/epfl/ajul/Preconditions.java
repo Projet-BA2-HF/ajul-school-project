@@ -2,6 +2,9 @@ package ch.epfl.ajul;
 
 /// Provides a utility method for checking method argument preconditions.
 /// If a precondition is violated, an {@link IllegalArgumentException} is thrown.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public final class Preconditions {
 
     /// Checks that the given condition holds.

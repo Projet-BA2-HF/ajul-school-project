@@ -3,6 +3,9 @@ package ch.epfl.ajul;
 import java.util.List;
 
 /// Identifies one of the players in a game of Ajul.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public enum PlayerId {
 
     /// Player 1.

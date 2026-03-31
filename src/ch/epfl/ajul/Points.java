@@ -2,6 +2,9 @@ package ch.epfl.ajul;
 
 /// Contains constants and static methods for computing the points earned by players
 /// during a game of Ajul, both at the end of each round and at the end of the game.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public final class Points {
 
     /// Bonus points awarded for each complete row of the wall at the end of the game.
@@ -16,7 +19,12 @@ public final class Points {
     //private static final int MAX_WIDTH = 5;
     //private static final int MAX_HEIGHT = 5;
 
+    // Packed floor penalties: each 4-bit nibble encodes the penalty for the
+    // corresponding tile position (nibble 0 = position 0, etc.).
+    // Values: positions 0–1 → 1, positions 2–4 → 2, positions 5–6 → 3.
     private static final int FLOOR_PENALTY = 0x3322211;
+    // Cumulative floor penalties: nibble i holds the total penalty for a floor
+    // line of i tiles, computed by summing the individual penalties above.
     private static final int TOTAL_FLOOR_PENALTY =
             (FLOOR_PENALTY * 0x1111111) << BITS_PER_PENALTY;
 

@@ -2,6 +2,9 @@ package ch.epfl.ajul.intarray;
 
 /// A read-only array of integers.
 /// Elements can be read but not modified.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 
 public interface ReadOnlyIntArray {
 

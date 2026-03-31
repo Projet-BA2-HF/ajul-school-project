@@ -12,6 +12,9 @@ import java.util.random.RandomGenerator;
 /// and bit 30 for the first player marker.
 /// Bit 31 is always 0.
 /// The zero separator bits between counters enable SWAR-style parallel arithmetic.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public final class PkTileSet {
 
     /// The packed representation of the empty tile set (no tiles of any kind).
@@ -31,9 +34,9 @@ public final class PkTileSet {
     /// The bit mask for extracting a single tile-kind counter (63).
     private static final int MASK = (1 << COLOR_SHIFT) - 1;
 
-    private static int computeFull(){
+    private static int computeFull() {
         int fullValue = EMPTY;
-        for (TileKind tk : TileKind.ALL){
+        for (TileKind tk : TileKind.ALL) {
             fullValue = union(fullValue, of(tk.tilesCount(), tk));
         }
         return fullValue;
@@ -44,15 +47,15 @@ public final class PkTileSet {
     /// @param count    the number of tiles of the given kind
     /// @param tileKind the kind of tile
     /// @return the packed tile set with {@code count} tiles of {@code tileKind}
-    public static int of(int count, TileKind tileKind){
-        return count << (tileKind.index() * 6);
+    public static int of(int count, TileKind tileKind) {
+        return count << (tileKind.index() * COLOR_SHIFT);
     }
 
     /// Returns {@code true} if the given packed tile set contains no tiles.
     ///
     /// @param pkTileSet the packed tile set
     /// @return {@code true} iff {@code pkTileSet} is empty
-    public static boolean isEmpty(int pkTileSet){
+    public static boolean isEmpty(int pkTileSet) {
         assert isValid(pkTileSet);
         return pkTileSet == EMPTY;
     }
@@ -77,7 +80,7 @@ public final class PkTileSet {
     /// @param pkTileSet the packed tile set
     /// @param tileKind  the kind of tile to count
     /// @return the count of {@code tileKind} tiles in {@code pkTileSet}
-    public static int countOf(int pkTileSet, TileKind tileKind){
+    public static int countOf(int pkTileSet, TileKind tileKind) {
         int tileKindIndex = tileKind.index() * COLOR_SHIFT;
         int tileKindShift = pkTileSet >> tileKindIndex;
         return tileKindShift & MASK;
@@ -89,9 +92,9 @@ public final class PkTileSet {
     /// @param pkTileSet the packed tile set
     /// @param tileKind  the kind of tile to extract
     /// @return the packed tile set containing only the {@code tileKind} tiles of {@code pkTileSet}
-    public static int subsetOf(int pkTileSet, TileKind tileKind){
+    public static int subsetOf(int pkTileSet, TileKind tileKind) {
         assert isValid(pkTileSet);
-        return of(countOf(pkTileSet,tileKind), tileKind);
+        return of(countOf(pkTileSet, tileKind), tileKind);
     }
 
     /// Returns a packed tile set equal to {@code pkTileSet} with exactly one additional
@@ -100,7 +103,7 @@ public final class PkTileSet {
     /// @param pkTileSet the packed tile set
     /// @param tileKind  the kind of tile to add
     /// @return the packed tile set with one more {@code tileKind} tile
-    public static int add(int pkTileSet, TileKind tileKind){
+    public static int add(int pkTileSet, TileKind tileKind) {
         assert isValid(pkTileSet);
         int tileCounter = 1 << (tileKind.index() * COLOR_SHIFT);
         return union(pkTileSet, tileCounter);
@@ -112,7 +115,7 @@ public final class PkTileSet {
     /// @param pkTileSet the packed tile set
     /// @param tileKind  the kind of tile to remove
     /// @return the packed tile set with one fewer {@code tileKind} tile
-    public static int remove(int pkTileSet, TileKind tileKind){
+    public static int remove(int pkTileSet, TileKind tileKind) {
         assert isValid(pkTileSet);
         int tileCounter = 1 << (tileKind.index() * COLOR_SHIFT);
         return difference(pkTileSet, tileCounter);
@@ -124,7 +127,7 @@ public final class PkTileSet {
     /// @param pkTileSet1 the first packed tile set
     /// @param pkTileSet2 the second packed tile set
     /// @return the packed union of {@code pkTileSet1} and {@code pkTileSet2}
-    public static int union(int pkTileSet1, int pkTileSet2){
+    public static int union(int pkTileSet1, int pkTileSet2) {
         assert isValid(pkTileSet1) && isValid(pkTileSet2);
         return pkTileSet1 + pkTileSet2;
     }
@@ -136,7 +139,7 @@ public final class PkTileSet {
     /// @param pkTileSet1 the packed tile set to subtract from
     /// @param pkTileSet2 the packed tile set to subtract (must be a sub-set of {@code pkTileSet1})
     /// @return the packed difference of {@code pkTileSet1} and {@code pkTileSet2}
-    public static int difference(int pkTileSet1, int pkTileSet2){
+    public static int difference(int pkTileSet1, int pkTileSet2) {
         assert isValid(pkTileSet1) && isValid(pkTileSet2);
         return pkTileSet1 - pkTileSet2;
     }
@@ -179,7 +182,7 @@ public final class PkTileSet {
             int colorCount = countOf(pkTileSet, color);
             for (int j = 0; j < colorCount; j++) {
                 if (currentIndex < destination.length) {
-                    destination [currentIndex] = color;
+                    destination[currentIndex] = color;
                 } else {
                     int randomIndex = randomGenerator.nextInt(offset,
                             currentIndex + 1);
@@ -200,16 +203,16 @@ public final class PkTileSet {
     ///
     /// @param pkTileSet the packed tile set
     /// @return the string representation of {@code pkTileSet}
-    public static String toString(int pkTileSet){
+    public static String toString(int pkTileSet) {
         assert isValid(pkTileSet);
         StringJoiner outputString = new StringJoiner(",", "{", "}");
-        for(TileKind.Colored tileColor : TileKind.Colored.ALL){
+        for (TileKind.Colored tileColor : TileKind.Colored.ALL) {
             int colorCount = countOf(pkTileSet, tileColor);
             if (colorCount == 0) continue;
             outputString.add(colorCount + "*" + tileColor);
         }
         int markerCount = countOf(pkTileSet, TileKind.FIRST_PLAYER_MARKER);
-        if(markerCount > 0){
+        if (markerCount > 0) {
             outputString.add(countOf(pkTileSet,
                     TileKind.FIRST_PLAYER_MARKER) + "*" + TileKind.FIRST_PLAYER_MARKER);
         }

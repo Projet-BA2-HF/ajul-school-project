@@ -4,6 +4,9 @@ package ch.epfl.ajul.intarray;
 /// without copying it. Any subsequent modification to the original array will be
 /// visible through this instance.
 /// Instances can only be created through the factory method wrapping.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 
 public final class MutableIntArray extends AbstractIntArray {
 

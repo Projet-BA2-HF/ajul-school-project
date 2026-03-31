@@ -6,6 +6,9 @@ import java.util.Objects;
 /// Represents a game configuration, i.e. the set of players and the derived game parameters
 /// such as the number of factories and tile sources.
 /// Instances are immutable.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public final class Game {
 
     private static final int MIN_PLAYERS = 2;

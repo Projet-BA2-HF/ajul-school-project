@@ -9,6 +9,9 @@ import java.util.StringJoiner;
 /// {@code int} value. The wall has {@value #WALL_HEIGHT} rows and {@value #WALL_WIDTH} columns
 /// (25 cells in total). Cell occupancy is encoded bit by bit: bit {@code i} is 1 if and only if
 /// cell {@code i} contains a tile, where cells are numbered 0–24 from left to right, top to bottom.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public final class PkWall {
 
     /// The packed representation of an empty wall.
@@ -19,16 +22,13 @@ public final class PkWall {
     public static final int WALL_HEIGHT = 5;
 
 
-    /// Bitmask selecting all cells of the first row (row 0).
+    // Bitmask selecting all cells of the first row (row 0).
     private static final int ROW0_MASK = (1 << WALL_WIDTH) - 1;
 
-    /// Bitmask selecting all cells of the first column (column 0).
+    // Bitmask selecting all cells of the first column (column 0).
     private static final int COLUMN0_MASK = 0b00001_00001_00001_00001_00001;
 
-    /// Returns the bitmask selecting all 5 cells of the wall that accept tiles of the given {@code color}.
-    ///
-    /// @param color the color whose cell mask is returned
-    /// @return the bitmask for that color
+    // Returns the bitmask selecting all 5 cells of the wall that accept tiles of the given color.
     private static int colorMask(TileKind.Colored color) {
         return switch (color) {
             case A -> 0b10000_01000_00100_00010_00001;
@@ -43,7 +43,7 @@ public final class PkWall {
     /// pattern line {@code line} that accepts tiles of color {@code color}.
     ///
     /// @param line  the pattern line
-    /// @param colored the color of the tile accepted by the cell
+    /// @param color the color of the tile accepted by the cell
     /// @return the cell index between 0 and 24
     public static int indexOf(TileDestination.Pattern line, TileKind.Colored colored){
         return (line.index() * WALL_WIDTH + column(line, colored));

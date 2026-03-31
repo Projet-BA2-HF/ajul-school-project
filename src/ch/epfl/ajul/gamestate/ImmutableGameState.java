@@ -25,6 +25,9 @@ import java.util.Objects;
 /// @param pkUniqueTileSources the packed set of unique source indices (see {@link PkIntSet32})
 /// @param pkPlayerStates      the packed state of all players (see {@link PkPlayerStates})
 /// @param currentPlayerId     the identity of the current player
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public record ImmutableGameState(
         Game game,
         int pkTileBag,
@@ -50,15 +53,15 @@ public record ImmutableGameState(
     /// @param game the game configuration
     /// @return the initial immutable game state
     public static ImmutableGameState initial(Game game) {
-        int[] pKTileSource =  new int[game.tileSourcesCount()];
-        Arrays.fill(pKTileSource, PkTileSet.EMPTY);
-        pKTileSource[TileSource.CENTER_AREA.index()] = PkTileSet.of(1,
+        int[] pkTileSources = new int[game.tileSourcesCount()];
+        Arrays.fill(pkTileSources, PkTileSet.EMPTY);
+        pkTileSources[TileSource.CENTER_AREA.index()] = PkTileSet.of(1,
                 TileKind.FIRST_PLAYER_MARKER);
 
         return new ImmutableGameState(
                 game,
                 PkTileSet.FULL_COLORED,
-                ImmutableIntArray.copyOf(pKTileSource),
+                ImmutableIntArray.copyOf(pkTileSources),
                 PkIntSet32.EMPTY,
                 PkPlayerStates.initial(game),
                 game.playerIds().getFirst()

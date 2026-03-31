@@ -2,6 +2,9 @@ package ch.epfl.ajul.intarray;
 
 /// An immutable integer array whose content cannot change after creation.
 /// Instances can only be created through the factory method copyOf.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 
 public final class ImmutableIntArray extends AbstractIntArray {
 

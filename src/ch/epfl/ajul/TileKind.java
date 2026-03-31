@@ -5,6 +5,9 @@ import java.util.random.RandomGenerator;
 
 /// Represents the six kinds of tiles that exist in the game:
 /// five colored tile kinds and the first player marker.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 
 public sealed interface TileKind {
 

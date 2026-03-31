@@ -4,6 +4,9 @@ import java.util.List;
 
 /// Identifies a tile source, i.e. one of the factories or the center area
 /// from which a player may take tiles during their turn.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 
 public sealed interface TileSource {
 

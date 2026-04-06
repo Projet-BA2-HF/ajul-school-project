@@ -21,14 +21,23 @@ import static ch.epfl.ajul.TileSource.FACTORY_1;
 /// @author Hedi Fourati
 /// @author Fahd Ben Ismail
 public final class MutableGameState implements ReadOnlyGameState {
+    // The game configuration (players, factories, etc.)
     private final Game game;
+    // Packed tile set representing the tiles remaining in the bag
     private int pkTileBag;
+    // Read-only view of the packed tile sources array
     private final ReadOnlyIntArray pkTileSources;
+    // Underlying mutable array backing pkTileSources
     private int[] pkTileSourcesList;
+    // Packed int set of unique tile source indices
     private int pkUniqueTileSources;
+    // Read-only view of the packed player states array
     private final ReadOnlyIntArray pkPlayerStates;
+    // Underlying mutable array backing pkPlayerStates
     private int[] pkPlayerStatesList;
+    // Identity of the player whose turn it is
     private PlayerId currentPlayerId;
+    // Observer notified whenever a player's score changes
     private final PointsObserver pointsObserver;
 
     /// Creates a new mutable game state with the same content as the given

@@ -11,21 +11,31 @@ import java.util.Objects;
 /// @author Fahd Ben Ismail
 public final class Game {
 
+    // Minimum number of players allowed in a game
     private static final int MIN_PLAYERS = 2;
+    // Maximum number of players allowed in a game
     private static final int MAX_PLAYERS = PlayerId.ALL.size();
 
+    // Extra factory count added per player beyond the base (2n+1 formula)
     private static final int EXTRA_FACTORY = 1;
 
+    // Number of center areas in a game 
     private static final int CENTER_AREA_COUNT = 1;
 
+    // Immutable list of all tile sources used in this game
     private final List<TileSource> tileSources;
+    // Immutable list of factories used in this game
     private final List<TileSource.Factory> factories;
+    // Immutable list of player identities in this game
     private final List<PlayerId> playerIds;
+    // Immutable list of player descriptions in this game
     private final List<PlayerDescription> playerDescriptions;
 
+    // Max tiles a single factory can contribute to the center area
     private static final int MAX_TILES_TO_CENTER_PER_FACTORY =
             TileSource.Factory.TILES_PER_FACTORY - 1;
 
+    // Number of first-player markers in the game (always 1)
     private static final int FIRST_PLAYER_MARKER_COUNT =
             TileKind.FIRST_PLAYER_MARKER.tilesCount();
 

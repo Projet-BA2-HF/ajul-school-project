@@ -24,8 +24,11 @@ public final class PkFloor {
     /// The packed representation of an empty floor line (no tiles).
     public static final int EMPTY = 0;
 
+    // Number of bits per tile slot in the packed floor representation
     private static final int TILE_SHIFT = 3;
+    // Bit mask for extracting a single tile slot (3 bits)
     private static final int TILE_MASK = (1 << TILE_SHIFT) - 1;
+    // Maximum capacity of the floor line 
     private static final int MAX_FLOOR = TileDestination.FLOOR.capacity();
 
     /// Returns the number of tiles on the given packed floor line.

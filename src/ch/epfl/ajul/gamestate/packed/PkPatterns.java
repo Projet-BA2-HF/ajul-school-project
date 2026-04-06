@@ -25,14 +25,20 @@ public final class PkPatterns {
     /// The packed representation of empty pattern lines (no tiles on any line).
     public static final int EMPTY = 0;
 
+    // Number of bits used to encode the tile count of a pattern line
     private static final int SIZE_BITS = 3;
+    // Number of bits used to encode the color index of a pattern line
     private static final int COLOR_BITS = 3;
 
+    // Total number of bits per pattern line (size + color)
     private static final int BITS_PER_LINE = SIZE_BITS + COLOR_BITS;
 
+    // Bit mask for extracting the tile count within a pattern line
     private static final int SIZE_MASK = (1 << SIZE_BITS) - 1;
+    // Bit mask for extracting an entire pattern line (size + color)
     private static final int LINE_MASK = (1 << BITS_PER_LINE) - 1;
 
+    // Bit shift to reach the color field within a pattern line
     private static final int COLOR_SHIFT = SIZE_BITS;
 
     /// Returns the number of tiles present on the given pattern line.

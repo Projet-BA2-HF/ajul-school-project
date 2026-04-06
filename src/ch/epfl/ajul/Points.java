@@ -14,9 +14,13 @@ public final class Points {
     /// Bonus points awarded for each complete color of the wall at the end of the game.
     public static final int FULL_COLOR_BONUS_POINTS = 10;
 
+    // Number of bits used per penalty value in the packed penalty constants
     private static final int BITS_PER_PENALTY = 4;
+    // Bit mask for extracting a single penalty nibble
     private static final int PENALTY_MASK = (1 << BITS_PER_PENALTY) - 1;
+    // Width of the wall in cells (number of columns)
     private static final int MAX_WIDTH = 5;
+    // Height of the wall in cells (number of rows)
     private static final int MAX_HEIGHT = 5;
 
     // Packed floor penalties: each 4-bit nibble encodes the penalty for the

@@ -9,6 +9,7 @@ import ch.epfl.ajul.gamestate.packed.PkPatterns;
 import ch.epfl.ajul.gamestate.packed.PkPlayerStates;
 import ch.epfl.ajul.gamestate.packed.PkTileSet;
 import ch.epfl.ajul.gamestate.packed.PkWall;
+import ch.epfl.ajul.mcts.HeuristicMoveSelector;
 
 import java.util.List;
 import java.util.Map;
@@ -108,7 +109,7 @@ public final class AjulTUI {
                 new Game.PlayerDescription(
                         PlayerId.P2,
                         "Hedi",
-                        Game.PlayerDescription.PlayerKind.HUMAN
+                        Game.PlayerDescription.PlayerKind.AI
                 );
 
         List<Game.PlayerDescription> playerInfos = List.of(player1, player2);
@@ -128,7 +129,7 @@ public final class AjulTUI {
             printState(gameState);
 
             String playerName = playerNames.get(gameState.currentPlayerId());
-            Move move = queryNextMove(playerName, gameState);
+            Move move = nextMove(playerName, gameState, randomGenerator);
 
             gameState.registerMove(move.packed());
 
@@ -377,5 +378,39 @@ public final class AjulTUI {
 
     private static String padRight(String s, int width) {
         return s + " ".repeat(Math.max(0, width - s.length()));
+    }
+
+    static Move nextMove(String playerName,
+                         ReadOnlyGameState gameState,
+                         RandomGenerator randomGenerator) {
+        Game.PlayerDescription.PlayerKind currentPlayerKind =
+                gameState.game()
+                        .playerDescriptions()
+                        .get(gameState.currentPlayerId().ordinal())
+                        .kind();
+
+        if (currentPlayerKind == Game.PlayerDescription.PlayerKind.AI) {
+            return queryAiMove(playerName, gameState, randomGenerator);
+        }
+        return queryNextMove(playerName, gameState);
+    }
+
+    private static Move queryAiMove(String playerName,
+                                    ReadOnlyGameState gameState,
+                                    RandomGenerator randomGenerator) {
+        short[] validMoves = new short[Move.MAX_MOVES];
+        int moveCount = gameState.uniqueValidMoves(validMoves);
+
+        int selectedMoveIndex = HeuristicMoveSelector.selectMove(
+                randomGenerator,
+                gameState,
+                validMoves,
+                moveCount
+        );
+
+        Move selectedMove = Move.ofPacked(validMoves[selectedMoveIndex]);
+
+        System.out.println(playerName + " (IA) joue : " + formatMove(selectedMove));
+        return selectedMove;
     }
 }

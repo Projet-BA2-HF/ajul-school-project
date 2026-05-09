@@ -94,8 +94,8 @@ public final class PkFloor {
     public static boolean containsFirstPlayerMarker(int pkFloor) {
         int size = PkFloor.size(pkFloor);
         for (int i = 0; i < size; i++)
-            if (((pkFloor >> ((i + 1) * TILE_SHIFT))
-                    & TILE_MASK) == TileKind.FIRST_PLAYER_MARKER.index())
+            if (((pkFloor >> ((i + 1) * TILE_SHIFT)) & TILE_MASK)
+                    == TileKind.FIRST_PLAYER_MARKER.index())
                 return true;
         return false;
     }
@@ -109,8 +109,7 @@ public final class PkFloor {
         int size = size(pkFloor);
 
         for (int i = 0; i < size; i++) {
-            pkTileSet = PkTileSet.union(pkTileSet,
-                    PkTileSet.of(1, tileAt(pkFloor, i)));
+            pkTileSet = PkTileSet.union(pkTileSet, PkTileSet.of(1, tileAt(pkFloor, i)));
         }
 
         return pkTileSet;

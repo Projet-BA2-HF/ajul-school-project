@@ -75,45 +75,52 @@ public final class MutableGameState implements ReadOnlyGameState {
     ///
     /// @param randomGenerator the random generator used for sampling and shuffling
     public void fillFactories(RandomGenerator randomGenerator) {
-        int n = TileSource.Factory.TILES_PER_FACTORY * game.factoriesCount();
+        // Total number of tiles needed to fill every factory.
+        int tilesNeeded = TileSource.Factory.TILES_PER_FACTORY * game.factoriesCount();
+        TileKind.Colored[] tilesToDistribute = new TileKind.Colored[tilesNeeded];
 
-        TileKind.Colored[] destination = new TileKind.Colored[n];
-
-        int m = PkTileSet.size(pkTileBag);
+        // If the bag does not contain enough tiles, empty it into the array first,
+        // then refill the bag with the discarded tiles before sampling the rest.
         int offset = 0;
-
-        if (m <= n) {
-            offset = PkTileSet.copyColoredInto(pkTileBag, destination);
+        if (PkTileSet.size(pkTileBag) <= tilesNeeded) {
+            offset = PkTileSet.copyColoredInto(pkTileBag, tilesToDistribute);
             pkTileBag = pkDiscardedTiles();
         }
 
-        int lastTileChangedIndex = PkTileSet.sampleColoredInto(pkTileBag,
-                destination,
-                offset,
-                randomGenerator);
+        // Randomly sample the remaining tiles from the bag (reservoir sampling).
+        int lastIndex = PkTileSet.sampleColoredInto(
+                pkTileBag, tilesToDistribute, offset, randomGenerator);
 
-        if (lastTileChangedIndex < n) destination = Arrays.copyOf(destination,
-                lastTileChangedIndex);
+        // In the rare case where there are not enough tiles available, truncate.
+        if (lastIndex < tilesNeeded)
+            tilesToDistribute = Arrays.copyOf(tilesToDistribute, lastIndex);
 
-        for (int i = offset; i < destination.length; i++)
-            pkTileBag = PkTileSet.remove(pkTileBag, destination[i]);
+        // Remove the sampled tiles from the bag.
+        for (int i = offset; i < tilesToDistribute.length; i++)
+            pkTileBag = PkTileSet.remove(pkTileBag, tilesToDistribute[i]);
 
-        shuffle(destination, randomGenerator);
-
-        for (int i = 0; i < destination.length; i++) {
-            int sourceIndex = FACTORY_1.index() + i / TileSource.Factory.TILES_PER_FACTORY;
-            pkTileSourcesList[sourceIndex] = PkTileSet.add(pkTileSourcesList[sourceIndex],
-                    destination[i]);
+        // Shuffle the tiles and distribute them 4 by 4 into the factories.
+        shuffle(tilesToDistribute, randomGenerator);
+        for (int i = 0; i < tilesToDistribute.length; i++) {
+            int factoryIndex = FACTORY_1.index() + i / TileSource.Factory.TILES_PER_FACTORY;
+            pkTileSourcesList[factoryIndex] =
+                    PkTileSet.add(pkTileSourcesList[factoryIndex], tilesToDistribute[i]);
         }
 
-        outerLoop:
+        // Recompute the set of "unique" factories: a factory is unique iff no earlier
+        // factory has the exact same content.
         for (TileSource.Factory source : game.factories()) {
             if (pkTileSourcesList[source.index()] == PkTileSet.EMPTY) continue;
-            for (int i = FACTORY_1.index(); i < source.index(); i++)
-                if (pkTileSourcesList[source.index()] == pkTileSourcesList[i]) continue outerLoop;
-            pkUniqueTileSources = PkIntSet32.add(pkUniqueTileSources, source.index());
+            boolean isDuplicate = false;
+            for (int i = FACTORY_1.index(); i < source.index(); i++) {
+                if (pkTileSourcesList[source.index()] == pkTileSourcesList[i]) {
+                    isDuplicate = true;
+                    break;
+                }
+            }
+            if (!isDuplicate)
+                pkUniqueTileSources = PkIntSet32.add(pkUniqueTileSources, source.index());
         }
-
     }
 
     /// Updates the game state to reflect the given packed move played by the
@@ -123,30 +130,39 @@ public final class MutableGameState implements ReadOnlyGameState {
     ///
     /// @param pkMove the packed representation of the move to register
     public void registerMove(short pkMove) {
+        // Decode the packed move.
         TileSource source = PkMove.source(pkMove);
         TileDestination destination = PkMove.destination(pkMove);
         TileKind.Colored color = PkMove.color(pkMove);
 
-        int tilesInSources = pkTileSourcesList[source.index()];
-        int pickedTile = PkTileSet.union(
-                PkTileSet.subsetOf(tilesInSources, color),
-                PkTileSet.subsetOf(tilesInSources, FIRST_PLAYER_MARKER));
+        int sourceContent = pkTileSourcesList[source.index()];
+        int centerIndex = CENTER_AREA.index();
+
+        // Pick every tile of the chosen color, plus the first player marker if it
+        // is present in the source (only possible in the center area).
+        int pickedTiles = PkTileSet.union(
+                PkTileSet.subsetOf(sourceContent, color),
+                PkTileSet.subsetOf(sourceContent, FIRST_PLAYER_MARKER));
 
         if (source == TileSource.CENTER_AREA) {
-            pkTileSourcesList[TileSource.CENTER_AREA.index()] =
-                    PkTileSet.difference(pkTileSourcesList[TileSource.CENTER_AREA.index()],
-                            pickedTile);
-            if (PkTileSet.isEmpty(pkTileSourcesList[TileSource.CENTER_AREA.index()]))
-                pkUniqueTileSources = PkIntSet32.remove(pkUniqueTileSources, CENTER_AREA.index());
+            // Remove the picked tiles from the center area. If it becomes empty,
+            // it is no longer a unique source.
+            pkTileSourcesList[centerIndex] =
+                    PkTileSet.difference(pkTileSourcesList[centerIndex], pickedTiles);
+            if (PkTileSet.isEmpty(pkTileSourcesList[centerIndex]))
+                pkUniqueTileSources = PkIntSet32.remove(pkUniqueTileSources, centerIndex);
         } else {
-            int addedToCenter = PkTileSet.difference(tilesInSources, pickedTile);
-            pkTileSourcesList[TileSource.CENTER_AREA.index()] =
-                    PkTileSet.union(pkTileSourcesList[TileSource.CENTER_AREA.index()],
-                            addedToCenter);
+            // The remaining tiles of this factory overflow to the center area.
+            int overflow = PkTileSet.difference(sourceContent, pickedTiles);
+            pkTileSourcesList[centerIndex] =
+                    PkTileSet.union(pkTileSourcesList[centerIndex], overflow);
 
-            if (!PkTileSet.isEmpty(addedToCenter))
-                pkUniqueTileSources = PkIntSet32.add(pkUniqueTileSources, CENTER_AREA.index());
+            // If the overflow adds new tiles to the center, mark it as a unique source.
+            if (!PkTileSet.isEmpty(overflow))
+                pkUniqueTileSources = PkIntSet32.add(pkUniqueTileSources, centerIndex);
 
+            // If this factory was unique, promote the first later factory that has
+            // the same content (if any) to unique status, then demote this factory.
             if (PkIntSet32.contains(pkUniqueTileSources, source.index())) {
                 for (int i = source.index() + 1; i < pkTileSourcesList.length; i++) {
                     if (pkTileSourcesList[source.index()] == pkTileSourcesList[i]) {
@@ -156,43 +172,46 @@ public final class MutableGameState implements ReadOnlyGameState {
                 }
                 pkUniqueTileSources = PkIntSet32.remove(pkUniqueTileSources, source.index());
             }
+
+            // The factory is now empty.
             pkTileSourcesList[source.index()] = PkTileSet.EMPTY;
         }
 
-        int unusedTile = PkTileSet.EMPTY;
+        // Place the picked tiles on the destination. Tiles that cannot be placed on
+        // the pattern line (or all of them, if the destination is the floor line)
+        // will end up on the floor line.
+        int unusedTiles;
         if (destination == TileDestination.FLOOR) {
-            unusedTile = pickedTile;
+            unusedTiles = pickedTiles;
         } else {
-            int inlineTiles = PkPatterns.size(
-                    PkPlayerStates.pkPatterns(pkPlayerStates, currentPlayerId),
-                    (TileDestination.Pattern) destination);
+            TileDestination.Pattern patternLine = (TileDestination.Pattern) destination;
+            int currentPatterns = PkPlayerStates.pkPatterns(pkPlayerStates, currentPlayerId);
+            int existingTileCount = PkPatterns.size(currentPatterns, patternLine);
+            int coloredTileCount = PkTileSet.countOf(pickedTiles, color);
+            int markerCount = PkTileSet.countOf(pickedTiles, FIRST_PLAYER_MARKER);
 
-            int currentPattern = PkPlayerStates.pkPatterns(pkPlayerStates, currentPlayerId);
-            int coloredTilesCount = PkTileSet.countOf(pickedTile, color);
-            int firstPlayerMarkerCount = PkTileSet.countOf(pickedTile, FIRST_PLAYER_MARKER);
-
-            int tilesToAdd = Math.min(destination.capacity() - inlineTiles, coloredTilesCount);
-
+            // Add as many colored tiles to the pattern line as it can hold.
+            int tilesToAdd = Math.min(patternLine.capacity() - existingTileCount, coloredTileCount);
             if (tilesToAdd > 0) {
-                int pattern = PkPatterns.withAddedTiles(
-                        currentPattern,
-                        (TileDestination.Pattern) destination,
-                        tilesToAdd,
-                        color);
-                PkPlayerStates.setPkPatterns(pkPlayerStatesList, currentPlayerId, pattern);
+                int newPatterns = PkPatterns.withAddedTiles(
+                        currentPatterns, patternLine, tilesToAdd, color);
+                PkPlayerStates.setPkPatterns(pkPlayerStatesList, currentPlayerId, newPatterns);
             }
 
-            unusedTile = PkTileSet.union(
-                    PkTileSet.of(coloredTilesCount - tilesToAdd, color),
-                    PkTileSet.of(firstPlayerMarkerCount, FIRST_PLAYER_MARKER));
+            // Colored tiles that did not fit, plus the first player marker, go to the floor.
+            unusedTiles = PkTileSet.union(
+                    PkTileSet.of(coloredTileCount - tilesToAdd, color),
+                    PkTileSet.of(markerCount, FIRST_PLAYER_MARKER));
         }
 
+        // Add the unused tiles to the current player's floor line.
         PkPlayerStates.setPkFloor(
                 pkPlayerStatesList,
                 currentPlayerId,
                 PkFloor.withAddedTiles(
-                        PkPlayerStates.pkFloor(pkPlayerStates, currentPlayerId), unusedTile));
+                        PkPlayerStates.pkFloor(pkPlayerStates, currentPlayerId), unusedTiles));
 
+        // Turn passes to the next player.
         int nextIndex = (currentPlayerId.ordinal() + 1) % game.playerIds().size();
         currentPlayerId = game.playerIds().get(nextIndex);
     }

@@ -23,7 +23,9 @@ public record Move(TileSource source,
 
     /// The maximum number of valid moves a player may choose from in any game state (216).
     /// Computed as 9 factories × 4 tiles per factory × 6 destinations.
-    public static final int MAX_MOVES = 9 * 4 * 6;
+    public static final int MAX_MOVES = TileSource.Factory.COUNT *
+            TileSource.Factory.TILES_PER_FACTORY *
+            TileDestination.COUNT;
 
     /// Compact constructor that validates that none of the three components is {@code null}.
     ///

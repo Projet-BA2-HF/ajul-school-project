@@ -177,7 +177,7 @@ public final class PkWall {
     /// @return {@code true} iff that row is full
     public static boolean isRowFull(int pkWall, TileDestination.Pattern line) {
         int rowMask = ROW0_MASK << (line.index() * WALL_WIDTH);
-        return (pkWall & rowMask) == rowMask;
+        return PkIntSet32.containsAll(pkWall, rowMask);
     }
 
     /// Returns {@code true} iff column {@code column} of the packed wall {@code pkWall}
@@ -189,7 +189,7 @@ public final class PkWall {
     public static boolean isColumnFull(int pkWall, int column) {
         assert 0 <= column && column < WALL_WIDTH;
         int columnMask = COLUMN0_MASK << column;
-        return (pkWall & columnMask) == columnMask;
+        return PkIntSet32.containsAll(pkWall, columnMask);
     }
 
     /// Returns {@code true} iff color {@code color} of the packed wall {@code pkWall}
@@ -200,7 +200,7 @@ public final class PkWall {
     /// @return {@code true} iff all cells of that color contain a tile
     public static boolean isColorFull(int pkWall, TileKind.Colored color) {
         int mask = colorMask(color);
-        return (pkWall & mask) == mask;
+        return PkIntSet32.containsAll(pkWall, mask);
     }
 
     /// Returns the packed tile set consisting of all tiles present on the packed wall {@code pkWall}.

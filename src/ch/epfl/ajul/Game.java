@@ -2,6 +2,7 @@ package ch.epfl.ajul;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 /// Represents a game configuration, i.e. the set of players and the derived game parameters
 /// such as the number of factories and tile sources.
@@ -38,6 +39,7 @@ public final class Game {
     // Number of first-player markers in the game (always 1)
     private static final int FIRST_PLAYER_MARKER_COUNT =
             TileKind.FIRST_PLAYER_MARKER.tilesCount();
+
 
     /// Describes a player in a game, combining their identity, display name, and kind.
     ///

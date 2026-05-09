@@ -34,6 +34,7 @@ public final class PkTileSet {
     /// The bit mask for extracting a single tile-kind counter (63).
     private static final int MASK = (1 << COLOR_SHIFT) - 1;
 
+    // Computes the packed tile set containing all tiles in the game (20 of each color + 1 marker).
     private static int computeFull() {
         int fullValue = EMPTY;
         for (TileKind tk : TileKind.ALL) {
@@ -81,9 +82,7 @@ public final class PkTileSet {
     /// @param tileKind  the kind of tile to count
     /// @return the count of {@code tileKind} tiles in {@code pkTileSet}
     public static int countOf(int pkTileSet, TileKind tileKind) {
-        int tileKindIndex = tileKind.index() * COLOR_SHIFT;
-        int tileKindShift = pkTileSet >> tileKindIndex;
-        return tileKindShift & MASK;
+        return (pkTileSet >>> (tileKind.index() * COLOR_SHIFT)) & MASK;
     }
 
     /// Returns the sub-set of the given packed tile set consisting solely of tiles
@@ -205,20 +204,16 @@ public final class PkTileSet {
     /// @return the string representation of {@code pkTileSet}
     public static String toString(int pkTileSet) {
         assert isValid(pkTileSet);
-        StringJoiner outputString = new StringJoiner(",", "{", "}");
-        for (TileKind.Colored tileColor : TileKind.Colored.ALL) {
-            int colorCount = countOf(pkTileSet, tileColor);
-            if (colorCount == 0) continue;
-            outputString.add(colorCount + "*" + tileColor);
+        StringJoiner sj = new StringJoiner(",", "{", "}");
+        for (TileKind tk : TileKind.ALL) {
+            int count = countOf(pkTileSet, tk);
+            if (count > 0) sj.add(count + "*" + tk);
         }
-        int markerCount = countOf(pkTileSet, TileKind.FIRST_PLAYER_MARKER);
-        if (markerCount > 0) {
-            outputString.add(countOf(pkTileSet,
-                    TileKind.FIRST_PLAYER_MARKER) + "*" + TileKind.FIRST_PLAYER_MARKER);
-        }
-        return outputString.toString();
+        return sj.toString();
     }
 
+    // Returns true if the given int represents a valid packed tile set
+    // (each color count between 0 and 20, marker count between 0 and 1).
     private static boolean isValid(int pkTileSet) {
         for (TileKind tileKind : TileKind.ALL) {
             if (countOf(pkTileSet, tileKind) > tileKind.tilesCount()) return false;

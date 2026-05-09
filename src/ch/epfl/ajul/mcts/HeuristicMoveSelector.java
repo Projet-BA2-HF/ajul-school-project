@@ -1,8 +1,6 @@
 package ch.epfl.ajul.mcts;
 
 import ch.epfl.ajul.TileDestination;
-import ch.epfl.ajul.TileKind;
-import ch.epfl.ajul.TileSource;
 import ch.epfl.ajul.gamestate.ReadOnlyGameState;
 import ch.epfl.ajul.gamestate.packed.PkMove;
 import ch.epfl.ajul.gamestate.packed.PkPatterns;
@@ -34,89 +32,64 @@ public final class HeuristicMoveSelector {
     ) {
         assert 0 < validMoveCount && validMoveCount <= packedMoves.length;
 
-        IndexReservoir exactFillMoveIndices = new IndexReservoir(randomGenerator);
-        IndexReservoir partialFillMoveIndices = new IndexReservoir(randomGenerator);
-        IndexReservoir otherMoveIndices = new IndexReservoir(randomGenerator);
+        IndexReservoir exactFillMoveIndices = new IndexReservoir();
+        IndexReservoir partialFillMoveIndices = new IndexReservoir();
+        IndexReservoir otherMoveIndices = new IndexReservoir();
 
-        int packedCurrentPlayerPatterns = PkPlayerStates.pkPatterns(
+        int pkPatterns = PkPlayerStates.pkPatterns(
                 gameState.pkPlayerStates(),
                 gameState.currentPlayerId()
         );
 
         for (int moveIndex = 0; moveIndex < validMoveCount; moveIndex++) {
             short packedMove = packedMoves[moveIndex];
-            TileDestination destination = PkMove.destination(packedMove);
+            IndexReservoir reservoir = otherMoveIndices;
 
-            if (destination == TileDestination.FLOOR) {
-                otherMoveIndices.consider(moveIndex);
-            } else {
-                TileDestination.Pattern destinationLine =
-                        (TileDestination.Pattern) destination;
-
-                int movedColoredTileCount = movedColoredTileCount(gameState, packedMove);
-                int remainingSpaceInLine = remainingSpaceInLine(
-                        packedCurrentPlayerPatterns,
-                        destinationLine
+            if(PkMove.destination(packedMove) instanceof  TileDestination.Pattern line) {
+                int movedColoredTileCount = PkTileSet.countOf(
+                        gameState.pkTileSources().get(PkMove.source(packedMove).index()),
+                        PkMove.color(packedMove)
                 );
-
-                if (movedColoredTileCount == remainingSpaceInLine) {
-                    exactFillMoveIndices.consider(moveIndex);
-                } else if (movedColoredTileCount < remainingSpaceInLine) {
-                    partialFillMoveIndices.consider(moveIndex);
-                } else {
-                    otherMoveIndices.consider(moveIndex);
-                }
+                int remainingSpaceInLine = line.capacity() - PkPatterns.size(pkPatterns, line);
+                if (movedColoredTileCount == remainingSpaceInLine)
+                    reservoir = exactFillMoveIndices;
+                else if (movedColoredTileCount < remainingSpaceInLine)
+                    reservoir = partialFillMoveIndices;
             }
+            reservoir.consider(randomGenerator, moveIndex);
         }
 
-        if (exactFillMoveIndices.containsSample()) {
+        if (exactFillMoveIndices.nonEmpty())
             return exactFillMoveIndices.sample();
-        }
-        if (partialFillMoveIndices.containsSample()) {
+        if (partialFillMoveIndices.nonEmpty())
             return partialFillMoveIndices.sample();
-        }
         return otherMoveIndices.sample();
     }
 
-    private static int movedColoredTileCount(ReadOnlyGameState gameState, short packedMove) {
-        TileSource source = PkMove.source(packedMove);
-        TileKind.Colored color = PkMove.color(packedMove);
-        int packedSourceTiles = gameState.pkTileSources().get(source.index());
-        return PkTileSet.countOf(packedSourceTiles, color);
-    }
-
-    private static int remainingSpaceInLine(
-            int packedPatterns,
-            TileDestination.Pattern line
-    ) {
-        int currentTileCount = PkPatterns.size(packedPatterns, line);
-        return line.capacity() - currentTileCount;
-    }
-
-    /// Reservoir sampler of capacity 1 storing move indices.
+    // Reservoir sampler of capacity 1 storing move indices.
     private static final class IndexReservoir {
-        private final RandomGenerator randomGenerator;
-        private int encounteredIndexCount;
-        private int sampledIndex;
+        int encounteredIndexCount;
+        int sampledIndex;
 
-        IndexReservoir(RandomGenerator randomGenerator) {
-            this.randomGenerator = randomGenerator;
+        // Creates a new empty reservoir using the given random generator.
+        IndexReservoir() {
             this.encounteredIndexCount = 0;
             this.sampledIndex = -1;
         }
 
-        void consider(int moveIndex) {
+        // Considers the given move index for inclusion in the reservoir.
+        void consider(RandomGenerator randomGenerator, int moveIndex) {
             encounteredIndexCount += 1;
-
-            if (randomGenerator.nextInt(encounteredIndexCount) == 0) {
+            if (randomGenerator.nextInt(encounteredIndexCount) == 0)
                 sampledIndex = moveIndex;
-            }
         }
 
-        boolean containsSample() {
-            return encounteredIndexCount > 0;
+        // Returns true if at least one element has been considered.
+        boolean nonEmpty() {
+            return encounteredIndexCount != 0;
         }
 
+        // Returns the move index currently held in the reservoir.
         int sample() {
             return sampledIndex;
         }

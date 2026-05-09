@@ -28,15 +28,19 @@ public final class RankComputer {
     /// @param gameState the game state
     /// @param ranks the array to fill with players' ranks
     public static void playersRank(ReadOnlyGameState gameState, int[] ranks) {
-        int playerCount = gameState.playerIds().size();
-        assert ranks.length == playerCount;
+        int playerCount = gameState.game().playersCount();
+        Preconditions.checkArgument(ranks.length == playerCount);
 
         int[] packedPlayers = new int[playerCount];
 
         for (PlayerId playerId : gameState.playerIds()) {
             int playerIndex = playerId.ordinal();
             int playerPoints = PkPlayerStates.points(gameState.pkPlayerStates(), playerId);
-            int fullRowCount = fullRowCount(gameState, playerId);
+            int fullRowCount = 0;
+            int packedWall = PkPlayerStates.pkWall(gameState.pkPlayerStates(), playerId);
+            for (TileDestination.Pattern line : TileDestination.Pattern.ALL)
+                if (PkWall.isRowFull(packedWall, line))
+                    fullRowCount += 1;
 
             int rankScore = (playerPoints << FULL_ROW_COUNT_BITS) | fullRowCount;
             packedPlayers[playerIndex] = (rankScore << PLAYER_INDEX_BITS) | playerIndex;
@@ -61,18 +65,5 @@ public final class RankComputer {
 
             ranks[playerIndex] = currentRank;
         }
-    }
-
-    private static int fullRowCount(ReadOnlyGameState gameState, PlayerId playerId) {
-        int packedWall = PkPlayerStates.pkWall(gameState.pkPlayerStates(), playerId);
-        int fullRowCount = 0;
-
-        for (TileDestination.Pattern line : TileDestination.Pattern.ALL) {
-            if (PkWall.isRowFull(packedWall, line)) {
-                fullRowCount += 1;
-            }
-        }
-
-        return fullRowCount;
     }
 }

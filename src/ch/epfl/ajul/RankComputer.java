@@ -31,6 +31,10 @@ public final class RankComputer {
         int playerCount = gameState.game().playersCount();
         Preconditions.checkArgument(ranks.length == playerCount);
 
+        // Pack each player into a single int: high bits = rank score (points
+        // shifted then OR-ed with full-row count, ranking by points first and
+        // full rows as a tie-breaker), low bits = the player index so we know
+        // who is who after sorting.
         int[] packedPlayers = new int[playerCount];
 
         for (PlayerId playerId : gameState.playerIds()) {
@@ -46,6 +50,8 @@ public final class RankComputer {
             packedPlayers[playerIndex] = (rankScore << PLAYER_INDEX_BITS) | playerIndex;
         }
 
+        // Sorts ascending; we'll walk it from the end to assign ranks from
+        // best (rank 0) to worst.
         Arrays.sort(packedPlayers);
 
         int previousRankScore = -1;
@@ -58,6 +64,8 @@ public final class RankComputer {
             int playerIndex = packedPlayer & PLAYER_INDEX_MASK;
             int rankScore = packedPlayer >>> PLAYER_INDEX_BITS;
 
+            // Tied players (equal rank score) inherit the rank of their
+            // predecessor; otherwise the rank jumps to the current position.
             if (rankScore != previousRankScore) {
                 currentRank = rankingPosition;
                 previousRankScore = rankScore;

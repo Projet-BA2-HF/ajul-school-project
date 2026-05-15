@@ -77,6 +77,10 @@
     -fx-fill: #ad1d1aff;
 }
 
+#tile-sources .anchor {
+    -fx-stroke: transparent;
+}
+
 HBox.tile-group {
     -fx-spacing: 4;
 }

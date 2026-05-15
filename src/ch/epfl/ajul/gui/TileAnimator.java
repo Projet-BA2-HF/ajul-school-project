@@ -16,23 +16,51 @@ import javafx.util.Duration;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/// Builds the animation that moves tiles on the board so that they reflect the
+/// current state of the game, in a way that respects the game rules and is
+/// visually pleasant.
+///
+/// For each tile kind, the class computes the supply (tile locations currently
+/// occupied that should not be) and the demand (tile locations that should be
+/// occupied but are not), then pairs them according to the matching algorithm
+/// described in step 10, and finally produces a {@link ParallelTransition} that
+/// moves each mismatched tile from its supply location to its paired demand
+/// location.
+///
+/// @author Hedi Fourati
+/// @author Fahd Ben Ismail
 public final class TileAnimator {
 
+    // Duration, in milliseconds, of an individual tile relocation animation.
+    private static final Duration TILE_ANIMATION_DURATION = new Duration(500);
+
+    /// Builds an animation that moves the tiles given as argument so that they
+    /// occupy the positions expected by the given game state.
+    ///
+    /// @param pos       a function returning the position at which a tile placed
+    ///                  on the given location must be drawn
+    /// @param tilesRep  a map associating each tile kind to the list of nodes
+    ///                  representing the tiles of that kind
+    /// @param gameState the game state describing where each tile should be
+    /// @return an animation displacing each mismatched tile from its current
+    ///         location to its newly assigned location
     public static Animation animateTiles(
             Function<TileLocation, Point2D> pos,
             Map<TileKind, List<Node>> tilesRep,
             ReadOnlyGameState gameState){
 
+        // Pairings produced by the matching algorithm: supply location -> demand location.
         Map<TileLocation, TileLocation> transaction = new HashMap<>();
         for (TileKind kind : TileKind.ALL) {
 
             Locations demand = demandFor(kind, gameState);
             Locations supply = supplyFor(tilesRep.get(kind), demand);
-            while(!demand.walls.isEmpty()){
-                TileLocation.OnWall wallLocation = demand.walls.removeFirst();
+            // Wall demand: pair each newly occupied wall cell with the rightmost
+            // tile of the pattern line on the same player's board.
+            while(!demand.onWalls.isEmpty()){
+                TileLocation.OnWall wallLocation = demand.onWalls.removeFirst();
                 TileDestination.Pattern line = wallLocation.line();
 
                 TileLocation.OnPattern wallSupply = new
@@ -43,18 +71,28 @@ public final class TileAnimator {
 
                 transaction.put(wallSupply, wallLocation);
             }
-            supply.sources.sort(Comparator.comparingInt(TileLocation.OnSource::index));
-            while(!demand.floors.isEmpty()){
-                TileLocation.OnFloor floorLocation = demand.floors.removeFirst();
-                TileLocation.OnSource floorSupply = supply.sources.removeFirst();
+            // Sources are consumed from the highest-indexed factory down to the center
+            // area, so that center tiles are the last ones reassigned (visually clearer).
+            // Within a single source, tiles are taken left to right.
+            supply.onSources.sort(Comparator
+                    .comparingInt( (TileLocation.OnSource onSource) ->
+                            onSource.source().index()).reversed()
+                    .thenComparing(TileLocation.OnSource::index));
+            // Floor demand satisfied from sources.
+            while(!demand.onFloors.isEmpty()){
+                TileLocation.OnFloor floorLocation = demand.onFloors.removeFirst();
+                TileLocation.OnSource floorSupply = supply.onSources.removeFirst();
                 transaction.put(floorSupply, floorLocation);
             }
-            while(!demand.patterns.isEmpty()){
-                TileLocation.OnPattern patternLocation = demand.patterns.removeFirst();
-                TileLocation.OnSource patternSupply = supply.sources.removeFirst();
+            // Pattern-line demand satisfied from sources.
+            while(!demand.onPatterns.isEmpty()){
+                TileLocation.OnPattern patternLocation = demand.onPatterns.removeFirst();
+                TileLocation.OnSource patternSupply = supply.onSources.removeFirst();
                 transaction.put(patternSupply, patternLocation);
             }
-            while(!demand.offBoards.isEmpty() && !supply.floors.isEmpty()){
+            // Off-board demand: floors first (tiles discarded at end of round),
+            // then sources (tiles still on factories at end of round).
+            while(!demand.offBoards.isEmpty() && !supply.onFloors.isEmpty()){
                 TileLocation.OffBoard offBoardLocation = demand.offBoards.removeFirst();
                 TileLocation.OnFloor offBoardSupply = supply.floors.removeFirst();
                 transaction.put(offBoardSupply, offBoardLocation);
@@ -64,6 +102,7 @@ public final class TileAnimator {
                 TileLocation.OnSource offBoardSupply = supply.sources.removeFirst();
                 transaction.put(offBoardSupply, offBoardLocation);
             }
+            // Any remaining supply/demand is paired in an arbitrary order.
             Iterator<TileLocation> demandIterator = demand.iterator();
             Iterator<TileLocation> supplyIterator = supply.iterator();
 
@@ -71,6 +110,8 @@ public final class TileAnimator {
                 transaction.put(supplyIterator.next(), demandIterator.next());
         }
 
+        // For every tile whose current location is a supply key, update the
+        // location stored on the node and produce a relocation animation.
         return new ParallelTransition(
                 tilesRep.values().stream()
                 .flatMap(List::stream)
@@ -79,13 +120,16 @@ public final class TileAnimator {
                         .map(tileLocation -> {
                             Tiles.setLocation(node, tileLocation);
                             return new RelocationTransition(node, pos.apply(tileLocation),
-                                    new Duration(500));
+                                    TILE_ANIMATION_DURATION);
                         }))
                 .toArray(Animation[]::new)
         );
     }
 
 
+    // Computes every location at which a tile of the given kind should appear in
+    // the given game state (sources, pattern lines, walls, floor lines, and
+    // off-board for tiles in the bag or discarded).
     private static Locations demandFor(TileKind demandedKind, ReadOnlyGameState gameState) {
         Locations demand = Locations.empty();
 
@@ -136,6 +180,11 @@ public final class TileAnimator {
         return demand;
     }
 
+    // Computes the supply for a given tile kind: every node whose current
+    // location is not part of the demand contributes its location to the supply.
+    // Locations that are part of the demand are simultaneously removed from it,
+    // so the demand returned to the caller contains only locations that still
+    // need a tile.
     private static Locations supplyFor (List<Node> nodes, Locations demand){
         Locations supply = Locations.empty();
 
@@ -148,6 +197,9 @@ public final class TileAnimator {
         return supply;
     }
 
+    // Partition of tile locations by category, used to express the supply and
+    // the demand of a given tile kind so that the matching algorithm can
+    // pick the appropriate sub-list at every step.
     private record Locations(
             List<TileLocation.OnSource> sources,
             List<TileLocation.OnPattern> patterns,

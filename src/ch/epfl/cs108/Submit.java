@@ -35,7 +35,7 @@ public final class Submit {
     private static final String TOKEN_2 = "[REDACTED_CS108_TOKEN]";
     // Noms des éventuels fichiers Java additionnels à inclure (p.ex. "src/ch/epfl/MyClass.java")
     private static final List<String> ADDITIONAL_FILES =
-            List.of();
+            List.of("src/ch/epfl/ajul/gui/NodeUtils.java");
     // -------------
 
     private static final String ZIP_ENTRY_NAME_PREFIX = "CS108/";

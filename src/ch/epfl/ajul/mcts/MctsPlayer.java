@@ -54,10 +54,14 @@ public final class MctsPlayer implements Player {
     @Override
     public Move nextMove(ReadOnlyGameState gameState) {
         int playerCount = gameState.game().playersCount();
+        // Buffers and accumulators reused across iterations to avoid allocations
+        // on the MCTS hot path.
         short[] validMoves = new short[Move.MAX_MOVES];
         int[] playersRank = new int[playerCount];
         byte[] browsedPath = new byte[INITIAL_PAIRS * 2];
         int[] generalizedPoints = new int[playerCount];
+        // Single generator dedicated to random play-outs; seeded deterministically
+        // from the initial bag so a given state always produces the same move.
         RandomGenerator simulationRandom = random.create(gameState.pkTileBag());
 
         MctsNode root = MctsNode.newRoot();
@@ -67,6 +71,10 @@ public final class MctsPlayer implements Player {
             MutableGameState game = new MutableGameState(gameState);
             int pathSize = 0;
 
+            // --- Phase 1 : selection / expansion ---
+            // Walk down the existing tree picking the highest-priority child,
+            // expanding nodes lazily, until we reach a node that has not yet
+            // been evaluated (gameCount == 0) or a terminal state.
             while(node.gameCount() > 0 && !game.isGameOver()){
                 if (node.childNodes == null){
                     int validMovesCount = game.uniqueValidMoves(validMoves);
@@ -82,6 +90,8 @@ public final class MctsPlayer implements Player {
 
                 int playerIndex = game.currentPlayerId().ordinal();
 
+                // Remember the (current player, child index) pair so that
+                // back-propagation can credit the right player on the right node.
                 browsedPath = addPair(
                                 browsedPath,
                                 (byte) playerIndex,
@@ -94,11 +104,16 @@ public final class MctsPlayer implements Player {
                 pathSize++;
                 if(game.isRoundOver()){
                     game.endRound();
+                    // Same node visited again would use the same seed and thus
+                    // observe the same factory refill, keeping the tree consistent.
                     if(!game.isGameOver())
                         game.fillFactories(random.create(node.pkMove()));
                 }
             }
 
+            // --- Phase 2 : random play-out ---
+            // From the evaluated node, finish the game by playing heuristically
+            // chosen moves until completion.
             while(!game.isGameOver()){
                 int validMovesCount = game.validMoves(validMoves);
                 int moveIndex = HeuristicMoveSelector.selectMove(simulationRandom,
@@ -119,12 +134,17 @@ public final class MctsPlayer implements Player {
 
             RankComputer.playersRank(game, playersRank);
 
+            // Generalized points combine the rank (high-order bits) with the
+            // raw score, so the algorithm prioritizes ranking over points.
             for(PlayerId player : game.playerIds()) {
                 int rankComplement = playerCount - 1 - playersRank[player.ordinal()];
                 int realPoints = PkPlayerStates.points(game.pkPlayerStates(), player);
                 generalizedPoints[player.ordinal()] = (rankComplement << POINT_SHIFT) + realPoints;
             }
 
+            // --- Phase 3 : back-propagation ---
+            // Increment the root's game count (no points), then add the
+            // appropriate player's generalized points to each visited node.
             root.registerEvaluation(0);
             MctsNode currentNode = root;
             for(int nodeIndex = 0; nodeIndex < pathSize; nodeIndex++) {
@@ -138,6 +158,8 @@ public final class MctsPlayer implements Player {
             }
         }
 
+        // After all iterations, pick the child of the root with the highest
+        // average score: it is the move with the best expected outcome.
         return Arrays.stream(root.childNodes)
                                 .max(Comparator.comparingDouble(MctsNode::averagePoints))
                                 .map(MctsNode::pkMove)

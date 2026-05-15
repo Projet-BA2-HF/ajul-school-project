@@ -68,12 +68,20 @@ public final class Main extends Application{
                 ? seedString.getBytes(StandardCharsets.UTF_8)
                 : SecureRandom.getSeed(8);
 
-        RandomGeneratorFactory<RandomGenerator> factory =
-                RandomGeneratorFactory.of("L64X128MixRandom");
-        RandomGenerator factoriesRandom = factory.create(seedBytes);
 
         List<Game.PlayerDescription> descriptions = new ArrayList<>();
-        Map<PlayerId, Player> aiPlayers = new HashMap<>();
+        Map<PlayerId, Player> players = new HashMap<>(); //juste players et on
+
+        // Set of moves currently playable by a human; populated by the game
+        // thread, consumed by the JavaFX thread on drag start. Synchronized
+        // because both threads access it.
+        Set<Move> validMoves =
+                Collections.synchronizedSet(new HashSet<>());
+        Set<Move> potentialMoves = new HashSet<>();
+        boolean[] moveAccepted = new boolean[]{false};
+        // Synchronous queue used by the game thread to wait until the JavaFX
+        // thread delivers the move chosen by the human player.
+        BlockingQueue<Move> humanMove = new SynchronousQueue<>();
 
         // Each unnamed argument describes one player, in PlayerId order.
         // A leading underscore means the player is AI-controlled (MCTS).
@@ -84,7 +92,8 @@ public final class Main extends Application{
                 descriptions.add(new Game.PlayerDescription(id,
                         arg.substring(1),
                         Game.PlayerDescription.PlayerKind.AI));
-                aiPlayers.put(id, new MctsPlayer(factory, MCTS_ITERATIONS));
+                players.put(id,
+                        new MctsPlayer(RandomGeneratorFactory.getDefault(), MCTS_ITERATIONS));
             } else {
 
                 descriptions.add(new Game.PlayerDescription(id,

@@ -43,14 +43,17 @@ public final class HeuristicMoveSelector {
 
         for (int moveIndex = 0; moveIndex < validMoveCount; moveIndex++) {
             short packedMove = packedMoves[moveIndex];
+
+            // Default category is "other"; refined below for pattern-line destinations.
             IndexReservoir reservoir = otherMoveIndices;
 
-            if(PkMove.destination(packedMove) instanceof  TileDestination.Pattern line) {
+            if(PkMove.destination(packedMove) instanceof TileDestination.Pattern line) {
                 int movedColoredTileCount = PkTileSet.countOf(
                         gameState.pkTileSources().get(PkMove.source(packedMove).index()),
                         PkMove.color(packedMove)
                 );
                 int remainingSpaceInLine = line.capacity() - PkPatterns.size(pkPatterns, line);
+                // Equal: exact fill. Less: partial fill. Greater (overflow): stays "other".
                 if (movedColoredTileCount == remainingSpaceInLine)
                     reservoir = exactFillMoveIndices;
                 else if (movedColoredTileCount < remainingSpaceInLine)
@@ -59,6 +62,8 @@ public final class HeuristicMoveSelector {
             reservoir.consider(randomGenerator, moveIndex);
         }
 
+        // Try categories in decreasing priority. The "other" reservoir is guaranteed
+        // non-empty when the two others are empty, because validMoveCount > 0.
         if (exactFillMoveIndices.nonEmpty())
             return exactFillMoveIndices.sample();
         if (partialFillMoveIndices.nonEmpty())

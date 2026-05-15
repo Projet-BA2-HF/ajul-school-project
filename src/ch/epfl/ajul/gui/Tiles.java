@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static ch.epfl.ajul.gui.NodeUtils.withClasses;
 import static ch.epfl.ajul.gui.NodeUtils.withId;
 
 /// Holds the JavaFX nodes representing all anchors and tiles of a game of Ajul.
@@ -135,9 +136,7 @@ public record Tiles(Map<TileLocation, Node> anchors,
     // Builds a rectangle of the standard tile size, with the "tile" style class
     // plus any extra classes given in argument.
     private static Rectangle tileRectangle(String... extraStyleClasses) {
-        Rectangle rect = new Rectangle(TILE_WIDTH, TILE_HEIGHT);
-        rect.getStyleClass().add("tile");
-        rect.getStyleClass().addAll(extraStyleClasses);
-        return rect;
+        Rectangle rect = withClasses(new Rectangle(TILE_WIDTH, TILE_HEIGHT), "tile");
+        return withClasses(rect, extraStyleClasses);
     }
 }

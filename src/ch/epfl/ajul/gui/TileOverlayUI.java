@@ -19,8 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-//VERIFIER AVEC ADAM ENCORE
-
 /// Manages the graphical representation of the tiles overlaying the game board,
 /// including drag-and-drop interaction by the user and animated tile movements
 /// triggered by changes of the game state.
@@ -30,8 +28,7 @@ import java.util.Set;
 public final class TileOverlayUI {
 
     // Coordinates assigned to off-board tile locations.
-    private static final double OFF_BOARD_X = -30;
-    private static final double OFF_BOARD_Y = -30;
+    private static final Point2D OFF_BOARD = new Point2D(-30, -30);
 
     // View orders defining display layers (smaller value = closer to front).
     private static final int STATIC_LAYER = 0;
@@ -82,7 +79,7 @@ public final class TileOverlayUI {
             for (int i = 0; i < nodes.size(); i++) {
                 Node node = nodes.get(i);
                 Tiles.setLocation(node, new TileLocation.OffBoard(kind, i));
-                node.relocate(OFF_BOARD_X, OFF_BOARD_Y);
+                node.relocate(OFF_BOARD.getX(), OFF_BOARD.getY());
             }
         });
 
@@ -95,7 +92,8 @@ public final class TileOverlayUI {
         // position when subscribe fires its first call with the initial state.
         TileOverlayUI tileOverlayUI = new TileOverlayUI(root, tiles);
         Platform.runLater(() -> gameStateO.subscribe(state ->
-                TileAnimator.animateTiles(tileOverlayUI::locationToPoint, tiles.tiles(), state).play()));
+                TileAnimator.animateTiles(tileOverlayUI::locationToPoint, tiles.tiles(), state)
+                        .play()));
 
         return tileOverlayUI;
     }
@@ -164,10 +162,6 @@ public final class TileOverlayUI {
             });
 
             sourceTile.setOnMouseDragDone(dragDoneEvent -> {
-                sourceTile.setOnMouseDragged(null);
-                sourceTile.setOnMouseDragDone(null);
-                root.setMouseTransparent(false);
-
                 if (moveAccepted[0]) {
                     // Freeze the visual position by absorbing the drag offset
                     // into the layout, so the next animation starts from there.
@@ -190,18 +184,22 @@ public final class TileOverlayUI {
                         tt.setToY(0);
                         cancelAnim.getChildren().add(tt);
                     }
-                    cancelAnim.setOnFinished(e -> {
-                        for (Node movingTile : tilesToMove) movingTile.setViewOrder(STATIC_LAYER);
-                    });
                     cancelAnim.play();
                 }
+
+                for (Node movingTile : tilesToMove) movingTile.setViewOrder(STATIC_LAYER);
+                sourceTile.setOnMouseDragged(null);
+                sourceTile.setOnMouseDragDone(null);
+                root.setMouseTransparent(false);
+                potentialMoves.clear();
+
             });
         });
     }
 
     private Point2D locationToPoint(TileLocation tileLocation){
         return tileLocation instanceof TileLocation.OffBoard
-                ? new Point2D(OFF_BOARD_X, OFF_BOARD_Y)
-                : root.sceneToLocal(tiles.anchors().get(tileLocation).localToScene(0, 0));
+                ? OFF_BOARD
+                : root.sceneToLocal(tiles.anchors().get(tileLocation).localToScene(Point2D.ZERO));
     }
 }

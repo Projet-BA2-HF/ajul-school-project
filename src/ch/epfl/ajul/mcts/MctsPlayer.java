@@ -24,7 +24,7 @@ import java.util.random.RandomGeneratorFactory;
 /// @author Hedi Fourati
 /// @author Fahd Ben Ismail
 public final class MctsPlayer implements Player {
-    private final RandomGeneratorFactory<RandomGenerator> random; // Type ?
+    private final RandomGeneratorFactory<RandomGenerator> random;
     private final int iterations;
 
     // Initial number of player/child pairs stored in the explored path

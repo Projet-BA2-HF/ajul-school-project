@@ -66,7 +66,7 @@ public final class TileAnimator {
                 TileLocation.OnPattern wallSupply = new
                         TileLocation.OnPattern(wallLocation.playerId(), line, line.index());
 
-                boolean isRemoved = supply.patterns.remove(wallSupply);
+                boolean isRemoved = supply.onPatterns.remove(wallSupply);
                 assert isRemoved;
 
                 transaction.put(wallSupply, wallLocation);
@@ -94,12 +94,12 @@ public final class TileAnimator {
             // then sources (tiles still on factories at end of round).
             while(!demand.offBoards.isEmpty() && !supply.onFloors.isEmpty()){
                 TileLocation.OffBoard offBoardLocation = demand.offBoards.removeFirst();
-                TileLocation.OnFloor offBoardSupply = supply.floors.removeFirst();
+                TileLocation.OnFloor offBoardSupply = supply.onFloors.removeFirst();
                 transaction.put(offBoardSupply, offBoardLocation);
             }
-            while(!demand.offBoards.isEmpty() && !supply.sources.isEmpty()){
+            while(!demand.offBoards.isEmpty() && !supply.onSources.isEmpty()){
                 TileLocation.OffBoard offBoardLocation = demand.offBoards.removeFirst();
-                TileLocation.OnSource offBoardSupply = supply.sources.removeFirst();
+                TileLocation.OnSource offBoardSupply = supply.onSources.removeFirst();
                 transaction.put(offBoardSupply, offBoardLocation);
             }
             // Any remaining supply/demand is paired in an arbitrary order.
@@ -201,44 +201,44 @@ public final class TileAnimator {
     // the demand of a given tile kind so that the matching algorithm can
     // pick the appropriate sub-list at every step.
     private record Locations(
-            List<TileLocation.OnSource> sources,
-            List<TileLocation.OnPattern> patterns,
-            List<TileLocation.OnWall> walls,
-            List<TileLocation.OnFloor> floors,
+            List<TileLocation.OnSource> onSources,
+            List<TileLocation.OnPattern> onPatterns,
+            List<TileLocation.OnWall> onWalls,
+            List<TileLocation.OnFloor> onFloors,
             List<TileLocation.OffBoard> offBoards
     ) {
         static Locations empty() {
             return new Locations(
-                    new ArrayList<>(),
-                    new ArrayList<>(),
-                    new ArrayList<>(),
-                    new ArrayList<>(),
-                    new ArrayList<>()
+                    new LinkedList<>(),
+                    new LinkedList<>(),
+                    new LinkedList<>(),
+                    new LinkedList<>(),
+                    new LinkedList<>()
             );
         }
 
         private static void add(Locations location, TileLocation tileLocation) {
             switch (tileLocation) {
-                case TileLocation.OnWall l -> location.walls().add(l);
-                case TileLocation.OnFloor l -> location.floors().add(l);
-                case TileLocation.OnSource l -> location.sources().add(l);
-                case TileLocation.OnPattern l -> location.patterns().add(l);
-                case TileLocation.OffBoard l -> location.offBoards().add(l);
+                case TileLocation.OnWall onWall -> location.onWalls().add(onWall);
+                case TileLocation.OnFloor onFloor -> location.onFloors().add(onFloor);
+                case TileLocation.OnSource onSource -> location.onSources().add(onSource);
+                case TileLocation.OnPattern onPattern -> location.onPatterns().add(onPattern);
+                case TileLocation.OffBoard offBoard -> location.offBoards().add(offBoard);
             }
         }
 
         private static boolean remove(Locations location, TileLocation tileLocation) {
             return switch (tileLocation) {
-                case TileLocation.OnSource l -> location.sources().remove(l);
-                case TileLocation.OnPattern l -> location.patterns().remove(l);
-                case TileLocation.OnWall l -> location.walls().remove(l);
-                case TileLocation.OnFloor l -> location.floors().remove(l);
-                case TileLocation.OffBoard l -> location.offBoards().remove(l);
+                case TileLocation.OnWall onWall -> location.onWalls().remove(onWall);
+                case TileLocation.OnFloor onFloor -> location.onFloors().remove(onFloor);
+                case TileLocation.OnSource onSource -> location.onSources().remove(onSource);
+                case TileLocation.OnPattern onPattern -> location.onPatterns().remove(onPattern);
+                case TileLocation.OffBoard offBoard -> location.offBoards().remove(offBoard);
             };
         }
 
         private Iterator<TileLocation> iterator(){
-            return Stream.of(sources, patterns, walls, floors, offBoards)
+            return Stream.of(onSources, onPatterns, onWalls, onFloors, offBoards)
                     .<TileLocation>flatMap(List::stream)
                     .iterator();
         }

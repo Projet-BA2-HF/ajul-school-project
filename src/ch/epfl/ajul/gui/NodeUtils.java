@@ -30,7 +30,7 @@ public final class NodeUtils {
     /// @param <T>  the concrete type of {@code node}
     /// @return the same {@code node}, for chaining
     public static <T extends Node> T withId(T node, String id){
-        node.setId(id);;
+        node.setId(id);
         return node;
     }
 }

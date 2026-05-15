@@ -3,6 +3,7 @@ package ch.epfl.ajul.gui;
 import ch.epfl.ajul.*;
 import ch.epfl.ajul.gamestate.*;
 import ch.epfl.ajul.gamestate.packed.*;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.*;
@@ -163,8 +164,7 @@ public final class BoardUI {
                     ));
             StackPane.setAlignment(playerInfo, Pos.TOP_LEFT);
 
-            GridPane patternWallGrid = new GridPane();
-            patternWallGrid.getStyleClass().add("lines-and-wall");
+            GridPane patternWallGrid = withClasses(new GridPane(), "lines-and-wall");
 
             for (TileDestination.Pattern pattern : TileDestination.Pattern.ALL) {
                 int row = pattern.index();
@@ -188,8 +188,9 @@ public final class BoardUI {
                 // Wall row.
                 for (int column = 0; column < PkWall.WALL_WIDTH; column++) {
                     TileKind.Colored color = PkWall.colorAt(pattern, column);
-                    Node wallAnchor = anchors.get(new TileLocation.OnWall(playerId, pattern, color));
-                    wallAnchor.getStyleClass().addAll("wall-background", color.name());
+                    Node wallAnchor = withClasses(
+                            anchors.get(new TileLocation.OnWall(playerId, pattern, color)),
+                            "wall-background", color.name());
                     patternWallGrid.add(wallAnchor, WALL_START_COLUMN + column, row);
                 }
 
@@ -217,8 +218,9 @@ public final class BoardUI {
                     .toArray(Node[]::new));
             configureDestination.accept(withClasses(floorArea, "floor"), TileDestination.FLOOR);
 
-            StackPane playerBoard = new StackPane(new VBox(patternWallGrid, floorArea), playerInfo);
-            playerBoard.getStyleClass().add("player-board");
+            StackPane playerBoard = withClasses(
+                    new StackPane(new VBox(patternWallGrid, floorArea), playerInfo),
+                    "player-board");
             playerBoardsGrid.add(playerBoard,
                     i % PLAYER_BOARD_COLUMNS, i / PLAYER_BOARD_COLUMNS);
 

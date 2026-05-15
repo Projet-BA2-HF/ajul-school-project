@@ -1,7 +1,5 @@
 package ch.epfl.ajul.mcts;
 
-import ch.epfl.ajul.Preconditions;
-
 import java.util.Objects;
 
 /// Represents a node of the game tree built by the MCTS algorithm.
@@ -21,7 +19,7 @@ public final class MctsNode {
     // 10-bit sentinel value representing no move (used for the root)
     private static final int EMPTY = 0x3FF;
     // Bit offset separating the packed move from the game count
-    private static final int POINTS_MASK = 10;
+    private static final int GAME_COUNT_OFFSET = 10;
     // Exploration constant used in the priority formula
     private static final int C = 80;
 
@@ -41,7 +39,7 @@ public final class MctsNode {
     /// @return a new root node
     public static MctsNode newRoot(){
         return new MctsNode(
-                EMPTY | (1 << POINTS_MASK),
+                EMPTY | (1 << GAME_COUNT_OFFSET),
                 0
         );
     }
@@ -70,7 +68,7 @@ public final class MctsNode {
     ///
     /// @return the simulated game count N
     public int gameCount(){
-        return packedMove >> POINTS_MASK;
+        return packedMove >> GAME_COUNT_OFFSET;
     }
 
     /// Returns the average number of points per simulated game,
@@ -87,7 +85,7 @@ public final class MctsNode {
     /// @param points the number of points to add
     public void registerEvaluation(int points){
         totalPoints += points;
-        packedMove += 1 << POINTS_MASK;
+        packedMove += 1 << GAME_COUNT_OFFSET;
     }
 
     /// Returns the index of the child node to explore next.
@@ -118,6 +116,7 @@ public final class MctsNode {
     // Computes the priority of the given child, combining average points (exploitation)
     // with an exploration term based on the parent and child game counts.
     private double priority(MctsNode child) {
-        return child.averagePoints() + C * Math.sqrt(2 * Math.log(gameCount()) / child.gameCount());
+        return child.averagePoints() +
+                C * Math.sqrt(2 * Math.log(gameCount()) / child.gameCount());
     }
 }
